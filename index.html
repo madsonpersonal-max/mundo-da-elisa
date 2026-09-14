@@ -286,5 +286,70 @@ function unlockPhase(n){
 
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js").catch(()=>{});}</script>
+
+<script>
+/* Mundo da Elisa V7.1 — progressão entre histórias */
+(function () {
+  const KEY = 'mundo_da_elisa_v71_progress';
+  const stories = [
+    {id:'folha-viajante', title:'A Folha Viajante'},
+    {id:'guarda-chuva-amarelo', title:'O Guarda-Chuva Amarelo'},
+    {id:'misterio-caixa', title:'O Mistério da Caixa'}
+  ];
+
+  function getProgress(){
+    try { return JSON.parse(localStorage.getItem(KEY) || '{"completed":[]}'); }
+    catch(e){ return {completed:[]}; }
+  }
+  function saveProgress(p){ localStorage.setItem(KEY, JSON.stringify(p)); }
+
+  window.MundoElisaV71 = {
+    completeStory: function(id){
+      const p=getProgress();
+      if(!p.completed.includes(id)) p.completed.push(id);
+      saveProgress(p);
+      return this.nextStory(id);
+    },
+    nextStory: function(id){
+      const i=stories.findIndex(s=>s.id===id);
+      return i>=0 && i<stories.length-1 ? stories[i+1] : null;
+    }
+  };
+
+  // Adds a non-invasive continuation card after a challenge is visibly completed.
+  function showNextCard(currentId){
+    const next=window.MundoElisaV71.nextStory(currentId);
+    if(!next) return;
+    if(document.getElementById('mde-v71-next')) return;
+
+    const card=document.createElement('div');
+    card.id='mde-v71-next';
+    card.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;width:min(92vw,520px);padding:18px;border-radius:20px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.18);text-align:center;font-family:system-ui,sans-serif;';
+    card.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:8px">A próxima aventura está liberada!</div><div style="margin-bottom:14px">Vamos conhecer <b>'+next.title+'</b>?</div><button id="mde-v71-go" style="border:0;border-radius:14px;padding:12px 20px;font-weight:700;cursor:pointer">Continuar aventura</button>';
+    document.body.appendChild(card);
+    document.getElementById('mde-v71-go').onclick=function(){
+      // Prefer an existing navigation control if the app exposes one.
+      const candidates=[...document.querySelectorAll('button,a')].filter(el=>/próxima|proxima|biblioteca|avançar|avancar|continuar/i.test(el.textContent||''));
+      const target=candidates.find(el=>el.id!=='mde-v71-go');
+      if(target) target.click();
+      else {
+        card.remove();
+        const msg=document.createElement('div');
+        msg.textContent='A próxima história foi liberada. Escolha-a na Biblioteca!';
+        msg.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:10000;background:#d9ead3;padding:12px 18px;border-radius:14px;font-family:system-ui,sans-serif;font-weight:600;';
+        document.body.appendChild(msg);
+        setTimeout(()=>msg.remove(),3500);
+      }
+    };
+  }
+
+  // Expose a simple hook for the app to call at completion.
+  window.addEventListener('mde:story-complete', function(e){
+    const id=e.detail && e.detail.id;
+    if(id) showNextCard(id);
+  });
+})();
+</script>
+
 </body>
 </html>
