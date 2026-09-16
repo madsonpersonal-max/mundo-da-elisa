@@ -1,1 +1,9 @@
-{"name":"Mundo da Elisa","short_name":"Mundo da Elisa","start_url":"./","display":"standalone","background_color":"#f6f7f1","theme_color":"#6f8b5b","lang":"pt-BR","icons":[]}
+{
+  "name":"Mundo da Elisa",
+  "short_name":"Mundo da Elisa",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f6f7f1",
+  "theme_color":"#6f8b5b",
+  "lang":"pt-BR"
+}
