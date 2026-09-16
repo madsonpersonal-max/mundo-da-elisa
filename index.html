@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6f8b5b">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mundo da Elisa — V11.1</title>
+<title>Mundo da Elisa — V11.2</title>
 <style>
 :root{--bg:#f6f7f1;--card:#fff;--ink:#263127;--muted:#667267;--green:#6f8b5b;--green2:#dfead8;--gold:#e9b949;--line:#e1e6dc;--soft:#f4f7f1;--ok:#3d7b3b;--warn:#956c1a}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 <div id="completeBox" class="card hidden" style="margin-top:14px;background:#f3f8ef"><h2>🎉 Missão concluída!</h2><p id="completeMsg"></p><button onclick="nextStory()">➡️ Continuar aventura</button></div>
 </div></section>
 
-<div class="footer">Mundo da Elisa V11.1 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
+<div class="footer">Mundo da Elisa V11.2 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
 </main>
 
 <script>
@@ -185,7 +185,7 @@ function renderHome(){
   if(!next)document.getElementById("missionCard").innerHTML="<h2>🏆 Biblioteca concluída!</h2><p>Você completou todas as 30 aventuras desta edição. As histórias continuam disponíveis para releitura.</p><button onclick=\"show('biblioteca')\">Reler uma história</button>";
   else{
     const s=next.s,b=adaptiveBand(),label=b==="desafio"?"Um desafio um pouquinho maior":b==="consolidacao"?"Uma aventura para consolidar":b==="reforco"?"Uma aventura de reforço":"Uma nova aventura";
-    document.getElementById("missionCard").innerHTML=`<h2>${s.title}</h2><p class="muted">Fase ${s.phase} • ${s.time}</p><p>${label}. O Pingo está esperando!</p><button onclick="openStory(${next.i})">🚀 Começar aventura</button>`;
+    document.getElementById("missionCard").innerHTML=`<h2>${s.title}</h2><p class="muted">${label} • ${s.time}</p><p>O Pingo está esperando!</p><button onclick="openStory(${next.i})">🚀 Começar aventura</button>`;
   }
   document.getElementById("catMessage").textContent=next?"Vamos nessa, Elisa! Leia com calma e me chame se quiser uma pista.":"Você completou esta edição! Agora podemos reler as aventuras.";
   renderBadges("badges");
@@ -218,7 +218,7 @@ function renderResponsible(){
 }
 function renderBadges(id){document.getElementById(id).innerHTML=(state.badges||[]).map(b=>`<span class="badge">${b}</span>`).join("")||"<span class='muted'>As primeiras conquistas aparecerão aqui.</span>"}
 function renderReader(){
-  const s=STORIES[current];document.getElementById("storyMeta").textContent=`Fase ${s.phase} • ${s.time} • ${state.completed.includes(s.id)?"História concluída":"Nova aventura"}`;
+  const s=STORIES[current];document.getElementById("storyMeta").textContent=`${state.completed.includes(s.id)?"História concluída":"Nova aventura"} • ${s.time}`;
   document.getElementById("storyText").innerHTML=`<h2>${s.title}</h2><p>${s.text.replace(/\n/g,"<br>")}</p>`;
   document.getElementById("quiz").innerHTML="";document.getElementById("completeBox").classList.add("hidden");document.getElementById("hint").classList.add("hidden");
   document.getElementById("readerCat").textContent="Leia com calma. Eu posso dar uma pista sem entregar a resposta.";
