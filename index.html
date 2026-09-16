@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6f8b5b">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mundo da Elisa — V8</title>
+<title>Mundo da Elisa — V9</title>
 <style>
 :root{--bg:#f6f7f1;--card:#fff;--ink:#263127;--muted:#667267;--green:#6f8b5b;--green2:#dfead8;--gold:#e9b949;--pink:#d77a9d;--line:#e1e6dc;--soft:#f4f7f1;--danger:#a85d5d}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -21,6 +21,10 @@ button{border:0;border-radius:13px;padding:11px 14px;font-weight:800;cursor:poin
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);font-size:13px}
 .footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
 @media(max-width:820px){.grid{grid-template-columns:1fr}.phases{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.cards{grid-template-columns:1fr}}
+
+.responsible-note{font-size:13px;color:var(--muted)}
+.support-ok{background:#eef7e9;border:1px solid #d5e6ca;color:#46633e}
+.mini{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -79,16 +83,40 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 </div><br><div id="badges2"></div></div>
 <div class="card"><h2>Histórico</h2><div id="history"></div></div></section>
 
-<section id="responsavel" class="hidden"><div class="card"><h1>👨‍👩‍👧 Área do responsável</h1><p class="muted">Acompanhamento educacional. Os indicadores abaixo não constituem diagnóstico.</p>
+<section id="responsavel" class="hidden"><div class="card"><h1>👨‍👩‍👧 Área do responsável</h1>
+<p class="muted">Acompanhamento educacional. Os registros ajudam a observar evolução, estratégias de apoio e rotina de leitura. Não constituem diagnóstico.</p>
+
+<div class="stats">
+<div class="stat"><div class="muted">Histórias</div><div class="num" id="rStories"></div></div>
+<div class="stat"><div class="muted">Dias de leitura</div><div class="num" id="rDays"></div></div>
+<div class="stat"><div class="muted">Estrelas</div><div class="num" id="rStars"></div></div>
+<div class="stat"><div class="muted">Fase</div><div class="num" id="rPhase"></div></div>
+</div>
+
+<div class="card" style="margin-top:14px;background:#f7faf5"><h2>📊 Indicadores de aprendizagem</h2>
 <table><tr><th>Indicador</th><th>Registro</th></tr>
-<tr><td>Histórias concluídas</td><td id="rStories"></td></tr>
-<tr><td>Dias de leitura</td><td id="rDays"></td></tr>
-<tr><td>Estrelas</td><td id="rStars"></td></tr>
 <tr><td>Respostas corretas</td><td id="rCorrect"></td></tr>
+<tr><td>Taxa de acerto nas questões</td><td id="rAccuracy"></td></tr>
 <tr><td>Uso de dicas</td><td id="rHints"></td></tr>
 <tr><td>Releituras</td><td id="rRereads"></td></tr>
-</table>
-<div class="notice" style="margin-top:14px"><b>TEPAC / Suporte 1:</b> usar como observação educacional, registrando necessidades de apoio, releitura, compreensão e evolução. Não é instrumento diagnóstico.</div>
+<tr><td>Última leitura</td><td id="rLastDate"></td></tr>
+</table></div>
+
+<div class="card" style="margin-top:14px"><h2>📅 Rotina de leitura</h2>
+<div class="stats">
+<div class="stat"><div class="muted">Últimos 7 dias</div><div class="num" id="r7"></div></div>
+<div class="stat"><div class="muted">Últimos 30 dias</div><div class="num" id="r30"></div></div>
+<div class="stat"><div class="muted">Últimos 90 dias</div><div class="num" id="r90"></div></div>
+<div class="stat"><div class="muted">Média de acerto</div><div class="num" id="rAvg"></div></div>
+</div></div>
+
+<div class="card" style="margin-top:14px"><h2>🧭 Observação TEPAC / Suporte 1</h2>
+<p class="muted">Use estes sinais somente como observação educacional:</p>
+<div class="badges" id="supportIndicators"></div>
+<div class="notice" style="margin-top:14px"><b>Importante:</b> uso de pista ou releitura não representa falha. São estratégias normais de apoio durante a aprendizagem.</div>
+</div>
+
+<div class="card" style="margin-top:14px"><h2>📚 Últimas aventuras</h2><div id="responsibleHistory"></div></div>
 </div></section>
 
 <section id="reader" class="hidden">
@@ -103,7 +131,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 </div>
 </section>
 
-<div class="footer">Mundo da Elisa V8 • Progressão gradual • Sem punição por erro • Progresso salvo no dispositivo</div>
+<div class="footer">Mundo da Elisa V9 • Progressão gradual • Sem punição por erro • Progresso salvo no dispositivo</div>
 </main>
 
 <script>
@@ -136,10 +164,12 @@ const STORIES=[
 
 const PHASES=["Exploradora","Curiosa","Aventureira","Descobridora","Grande Leitora"];
 const PHASEDESC=["Palavras e frases","Pequenos textos","Sequência e sentido","Inferências simples","Leitura mais autônoma"];
-const KEY="mundo_da_elisa_v8";
+const KEY="mundo_da_elisa_v8"; // V9 preserva o progresso já salvo pela V8
 let state=loadState(), current=0, answers=[], hints=0;
+state.questionsCorrect=state.questionsCorrect||state.correct||0;
+state.questionsAttempted=state.questionsAttempted||state.total||0;
 
-function defaultState(){return {stars:5,completed:[],days:0,lastDate:null,correct:0,total:0,hints:0,rereads:0,history:[],badges:[]}}
+function defaultState(){return {stars:5,completed:[],days:0,lastDate:null,correct:0,total:0,questionsCorrect:0,questionsAttempted:0,hints:0,rereads:0,history:[],badges:[]}}
 function loadState(){try{return Object.assign(defaultState(),JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){return defaultState()}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state));renderAll()}
 function today(){return new Date().toISOString().slice(0,10)}
@@ -164,7 +194,37 @@ function renderHome(){
 function renderLibrary(){document.getElementById("library").innerHTML=STORIES.map((s,i)=>{let done=state.completed.includes(s.id), unlocked=phaseUnlocked(s.phase);return `<div class="storycard ${!unlocked?"locked":""}"><h3>${done?"✅ ":""}${s.title}</h3><p class="muted">Fase ${s.phase} • ${s.time}</p>${unlocked?`<button onclick="openStory(${i})">${done?"Reler":"Ler agora"}</button>`:"🔒 Bloqueada"}</div>`}).join("")}
 function renderJourney(){document.getElementById("journeyMap").innerHTML=STORIES.map((s,i)=>{let done=state.completed.includes(s.id),unlocked=phaseUnlocked(s.phase);return `<div class="card" style="margin-top:10px;background:${done?"#f0f8ec":unlocked?"#fff":"#f3f4f1"}"><b>${done?"✅":unlocked?"📖":"🔒"} ${i+1}. ${s.title}</b><div class="muted">Fase ${s.phase} • ${PHASEDESC[s.phase-1]}</div>${unlocked?`<button class="soft" style="margin-top:8px" onclick="openStory(${i})">${done?"Revisitar":"Explorar"}</button>`:""}</div>`}).join("")}
 function renderProgress(){document.getElementById("pStars").textContent=state.stars+" ⭐";document.getElementById("pStories").textContent=state.completed.length+"/"+STORIES.length;document.getElementById("pDays").textContent=state.days;document.getElementById("pPhase").textContent=currentPhase()+"/5";renderBadges("badges2");document.getElementById("history").innerHTML=state.history.length?state.history.map(h=>`<div class="storycard"><b>${h.title}</b><div class="muted">${h.date} • ${h.pct}% de acerto • ${h.stars} ⭐</div></div>`).join(""):"<p class='muted'>Ainda não há registros.</p>"}
-function renderResponsible(){["rStories","rDays","rStars","rCorrect","rHints","rRereads"].forEach((id,i)=>document.getElementById(id).textContent=[state.completed.length,state.days,state.stars,state.correct,state.hints,state.rereads][i])}
+function dateDaysAgo(days){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-days);return d.toISOString().slice(0,10)}
+function historyDates(){return [...new Set((state.history||[]).map(h=>h.date).filter(Boolean))]}
+function countRecentDays(days){const min=dateDaysAgo(days-1);return historyDates().filter(d=>d>=min).length}
+function avgAccuracy(){const hs=(state.history||[]).filter(h=>typeof h.pct==="number");return hs.length?Math.round(hs.reduce((a,h)=>a+h.pct,0)/hs.length):0}
+function renderResponsible(){
+ const hist=state.history||[], dates=historyDates();
+ const accuracy=state.questionsAttempted?Math.round((state.questionsCorrect/state.questionsAttempted)*100):avgAccuracy();
+ const last=hist[0]?.date || state.lastDate || "Ainda não";
+ document.getElementById("rStories").textContent=state.completed.length;
+ document.getElementById("rDays").textContent=state.days || dates.length;
+ document.getElementById("rStars").textContent=state.stars;
+ document.getElementById("rPhase").textContent=currentPhase()+"/5";
+ document.getElementById("rCorrect").textContent=state.questionsCorrect;
+ document.getElementById("rAccuracy").textContent=accuracy+"%";
+ document.getElementById("rHints").textContent=state.hints;
+ document.getElementById("rRereads").textContent=state.rereads;
+ document.getElementById("rLastDate").textContent=last;
+ document.getElementById("r7").textContent=countRecentDays(7);
+ document.getElementById("r30").textContent=countRecentDays(30);
+ document.getElementById("r90").textContent=countRecentDays(90);
+ document.getElementById("rAvg").textContent=avgAccuracy()+"%";
+ const support=[];
+ if(state.hints>0) support.push("💡 Utilizou pistas");
+ if(state.rereads>0) support.push("📖 Utilizou releitura");
+ if(accuracy>=90) support.push("🌟 Bom domínio nas questões registradas");
+ else if(accuracy>=66) support.push("🌱 Em consolidação");
+ else if(state.questionsAttempted) support.push("🔎 Reforço e mediação podem ajudar");
+ if(!support.length) support.push("🌱 Ainda sem dados suficientes");
+ document.getElementById("supportIndicators").innerHTML=support.map(x=>`<span class="badge support-ok">${x}</span>`).join("");
+ document.getElementById("responsibleHistory").innerHTML=hist.length?hist.slice(0,8).map(h=>`<div class="storycard"><b>${h.title}</b><div class="muted">${h.date} • ${h.pct}% de acerto • ${h.stars} ⭐${h.hints?` • ${h.hints} pistas`:""}${h.rereads?` • ${h.rereads} releituras`:""}</div></div>`).join(""):"<p class='muted'>Ainda não há registros.</p>";
+}
 function renderBadges(id){document.getElementById(id).innerHTML=(state.badges.length?state.badges:[]).map(b=>`<span class="badge">${b}</span>`).join("")||"<span class='muted'>As primeiras conquistas aparecerão aqui.</span>"}
 function renderReader(){const s=STORIES[current];document.getElementById("storyMeta").textContent=`Fase ${s.phase} • ${s.time} • ${state.completed.includes(s.id)?"História concluída":"Nova aventura"}`;document.getElementById("storyText").innerHTML=`<h2>${s.title}</h2><p>${s.text}</p>`;document.getElementById("quiz").innerHTML="";document.getElementById("completeBox").classList.add("hidden");document.getElementById("hint").classList.add("hidden");document.getElementById("readerCat").textContent="Leia com calma. Eu posso dar uma pista sem entregar a resposta."}
 
@@ -177,10 +237,52 @@ function adaptiveLevel(){
 }
 
 function startChallenge(){const s=STORIES[current];answers=new Array(s.qs.length).fill(false);document.getElementById("quiz").innerHTML=s.qs.map((q,i)=>`<div class="question"><b>${q[0]}</b><div class="options">${q[1].map((o,j)=>`<button onclick="answer(${i},${j},this)">${o}</button>`).join("")}</div><div class="feedback" id="f${i}"></div></div>`).join("");document.getElementById("quiz").scrollIntoView({behavior:"smooth"})}
-function answer(i,j,btn){const s=STORIES[current],f=document.getElementById("f"+i);if(j===s.qs[i][2]){if(!answers[i]){answers[i]=true;state.correct++;state.total++;state.stars+=2;btn.classList.add("correct");}f.textContent="Muito bem! Você encontrou a pista. ⭐";f.className="feedback good";if(answers.every(Boolean))finish()}else{state.total++;f.textContent="Tudo bem. Releia o trecho e tente outra vez. O Pingo pode ajudar.";f.className="feedback try";state.hints++;document.getElementById("readerCat").textContent="Quer uma pista? Procure no texto uma informação que combine com a pergunta."}save()}
+function answer(i,j,btn){
+ const s=STORIES[current],f=document.getElementById("f"+i);
+ if(j===s.qs[i][2]){
+   if(!answers[i]){
+     answers[i]=true;
+     state.correct++;
+     state.total++;
+     state.questionsCorrect++;
+     state.questionsAttempted++;
+     state.stars+=2;
+     btn.classList.add("correct");
+   }
+   f.textContent="Muito bem! Você encontrou a pista. ⭐";
+   f.className="feedback good";
+   if(answers.every(Boolean))finish();
+ }else{
+   state.total++;
+   state.questionsAttempted++;
+   f.textContent="Tudo bem. Releia o trecho e tente outra vez. O Pingo pode ajudar.";
+   f.className="feedback try";
+   state.hints++;
+   document.getElementById("readerCat").textContent="Quer uma pista? Procure no texto uma informação que combine com a pergunta.";
+ }
+ save();
+}
 function giveHint(){state.hints++;const s=STORIES[current];document.getElementById("hint").textContent="💡 Pingo: "+(["Procure no texto a frase que fala sobre o movimento.","Volte ao começo e procure o objeto citado.","Observe as pistas e os lugares mencionados.","Releia a parte em que a descoberta acontece.","Procure a palavra ou ideia que se repete na história."][s.phase-1]);document.getElementById("hint").classList.remove("hidden");document.getElementById("readerCat").textContent=document.getElementById("hint").textContent.replace("💡 ","");save()}
 function reRead(){state.rereads++;document.getElementById("readerCat").textContent="Muito bem! Reler é uma estratégia de leitor.";save()}
-function finish(){const s=STORIES[current];if(!state.completed.includes(s.id)){state.completed.push(s.id);const d=today();if(state.lastDate!==d){state.days++;state.lastDate=d}const pct=Math.round((answers.filter(Boolean).length/s.qs.length)*100);state.history.unshift({title:s.title,date:d,pct,stars:answers.filter(Boolean).length*2});if(state.completed.length===1)state.badges.push("🌱 Primeira aventura");if(state.completed.length===3)state.badges.push("🔎 Caçadora de pistas");if(state.completed.length===STORIES.length)state.badges.push("🏆 Grande Leitora");document.getElementById("completeMsg").textContent=pct===100?"Excelente! O Pingo está muito orgulhoso.":"Missão concluída! Você aprendeu tentando, relendo e encontrando pistas.";document.getElementById("completeBox").classList.remove("hidden");document.getElementById("readerCat").textContent="Parabéns! A próxima aventura está liberada.";speak(document.getElementById("readerCat").textContent);save()}}
+function finish(){
+ const s=STORIES[current];
+ if(!state.completed.includes(s.id)){
+   state.completed.push(s.id);
+   const d=today();
+   if(state.lastDate!==d){state.days++;state.lastDate=d}
+   const pct=Math.round((answers.filter(Boolean).length/s.qs.length)*100);
+   const storyHints=state.hints||0, storyRereads=state.rereads||0;
+   state.history.unshift({title:s.title,date:d,pct,stars:answers.filter(Boolean).length*2,hints:storyHints,rereads:storyRereads});
+   if(state.completed.length===1)state.badges.push("🌱 Primeira aventura");
+   if(state.completed.length===3)state.badges.push("🔎 Caçadora de pistas");
+   if(state.completed.length===STORIES.length)state.badges.push("🏆 Grande Leitora");
+   document.getElementById("completeMsg").textContent=pct===100?"Excelente! O Pingo está muito orgulhoso.":"Missão concluída! Você aprendeu tentando, relendo e encontrando pistas.";
+   document.getElementById("completeBox").classList.remove("hidden");
+   document.getElementById("readerCat").textContent="Parabéns! A próxima aventura está liberada.";
+   speak(document.getElementById("readerCat").textContent);
+   save();
+ }
+}
 function nextStory(){const n=STORIES.findIndex((s,i)=>i>current&&!state.completed.includes(s.id));if(n>=0)openStory(n);else show("home")}
 function speak(text){if("speechSynthesis" in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="pt-BR";u.rate=.95;speechSynthesis.speak(u)}}
 function renderAll(){renderHome();renderLibrary();renderJourney();renderProgress();renderResponsible()}
