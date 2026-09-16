@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6f8b5b">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mundo da Elisa — V11</title>
+<title>Mundo da Elisa — V11.1</title>
 <style>
 :root{--bg:#f6f7f1;--card:#fff;--ink:#263127;--muted:#667267;--green:#6f8b5b;--green2:#dfead8;--gold:#e9b949;--line:#e1e6dc;--soft:#f4f7f1;--ok:#3d7b3b;--warn:#956c1a}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -82,16 +82,17 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 <div class="card" style="margin-top:14px;background:#f7faf5"><h2>📊 Indicadores de aprendizagem</h2>
 <table><tr><th>Indicador</th><th>Registro</th></tr>
 <tr><td>Respostas corretas</td><td id="rCorrect"></td></tr>
-<tr><td>Taxa de acerto nas questões</td><td id="rAccuracy"></td></tr>
+<tr><td>Tentativas de resposta</td><td id="rAttempts"></td></tr>
+<tr><td>Taxa de acerto nas tentativas</td><td id="rAccuracy"></td></tr>
 <tr><td>Uso de dicas</td><td id="rHints"></td></tr>
 <tr><td>Releituras</td><td id="rRereads"></td></tr>
 <tr><td>Última leitura</td><td id="rLastDate"></td></tr>
 </table></div>
-<div class="card" style="margin-top:14px"><h2>📅 Rotina de leitura</h2><div class="stats">
+<div class="card" style="margin-top:14px"><h2>📅 Rotina de leitura</h2><p class="mini">Mostra a frequência de leitura e a média do resultado final das aventuras concluídas. A taxa de acerto nas tentativas fica separada nos indicadores de aprendizagem.</p><div class="stats">
 <div class="stat"><div class="muted">Últimos 7 dias</div><div class="num" id="r7"></div></div>
 <div class="stat"><div class="muted">Últimos 30 dias</div><div class="num" id="r30"></div></div>
 <div class="stat"><div class="muted">Últimos 90 dias</div><div class="num" id="r90"></div></div>
-<div class="stat"><div class="muted">Média de acerto</div><div class="num" id="rAvg"></div></div>
+<div class="stat"><div class="muted">Média final das aventuras</div><div class="num" id="rAvg"></div></div>
 </div></div>
 <div class="card" style="margin-top:14px"><h2>🧭 Observação TEPAC / Suporte 1</h2><p class="muted">Use estes sinais somente como observação educacional:</p><div id="supportIndicators"></div><div class="notice" style="margin-top:14px"><b>Importante:</b> uso de pista ou releitura não representa falha. São estratégias normais de apoio durante a aprendizagem.</div></div>
 <div class="card" style="margin-top:14px"><h2>📚 Últimas aventuras</h2><div id="responsibleHistory"></div></div>
@@ -105,7 +106,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 <div id="completeBox" class="card hidden" style="margin-top:14px;background:#f3f8ef"><h2>🎉 Missão concluída!</h2><p id="completeMsg"></p><button onclick="nextStory()">➡️ Continuar aventura</button></div>
 </div></section>
 
-<div class="footer">Mundo da Elisa V11 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
+<div class="footer">Mundo da Elisa V11.1 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
 </main>
 
 <script>
@@ -209,7 +210,7 @@ function avgAccuracy(){const hs=(state.history||[]).filter(h=>typeof h.pct==="nu
 function renderResponsible(){
   const hist=state.history||[],dates=historyDates(),acc=state.questionsAttempted?Math.round((state.questionsCorrect/state.questionsAttempted)*100):avgAccuracy(),last=hist[0]?.date||state.lastDate||"Ainda não";
   document.getElementById("rStories").textContent=state.completed.length;document.getElementById("rDays").textContent=state.days||dates.length;document.getElementById("rStars").textContent=state.stars;document.getElementById("rPhase").textContent=currentPhase()+"/5";
-  document.getElementById("rCorrect").textContent=state.questionsCorrect;document.getElementById("rAccuracy").textContent=acc+"%";document.getElementById("rHints").textContent=state.hints;document.getElementById("rRereads").textContent=state.rereads;document.getElementById("rLastDate").textContent=last;
+  document.getElementById("rCorrect").textContent=state.questionsCorrect;document.getElementById("rAttempts").textContent=state.questionsAttempted;document.getElementById("rAccuracy").textContent=acc+"%";document.getElementById("rHints").textContent=state.hints;document.getElementById("rRereads").textContent=state.rereads;document.getElementById("rLastDate").textContent=last;
   document.getElementById("r7").textContent=countRecentDays(7);document.getElementById("r30").textContent=countRecentDays(30);document.getElementById("r90").textContent=countRecentDays(90);document.getElementById("rAvg").textContent=avgAccuracy()+"%";
   const support=[];if(state.hints>0)support.push("💡 Utilizou pistas");if(state.rereads>0)support.push("📖 Utilizou releitura");if(acc>=90)support.push("🌟 Bom domínio nas questões registradas");else if(acc>=66)support.push("🌱 Em consolidação");else if(state.questionsAttempted)support.push("🔎 Reforço e mediação podem ajudar");if(!support.length)support.push("🌱 Ainda sem dados suficientes");
   document.getElementById("supportIndicators").innerHTML=support.map(x=>`<span class="badge support-ok">${x}</span>`).join("");
