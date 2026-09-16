@@ -66,7 +66,7 @@ button{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:poin
 <div class="nav">
 <button onclick="show('home')">🏠 Minha jornada</button><button class="soft" onclick="show('jornada')">🗺️ Mapa</button>
 <button class="soft" onclick="show('biblioteca')">📚 Biblioteca</button><button class="soft" onclick="show('conteudo')">🎯 Atividades</button>
-<button class="soft" onclick="show('responsavel')">👨‍👩‍👧 Responsável</button>
+<button class="soft" onclick="show('responsavel')">👨‍👩‍👧 Responsável</button><button class="soft" onclick="show('progresso');renderProgress()">💾 Meu progresso</button>
 </div>
 
 <section id="home">
@@ -209,11 +209,31 @@ button{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:poin
 <h2>🏅 Conquistas</h2><div class="badges"><div class="badge">⭐ Primeira leitura</div><div class="badge">📖 Começou a jornada</div><div class="badge">🐱 Parceira do Pingo</div></div>
 </div>
 </section>
+
+<section id="progresso" class="hidden">
+<div class="card">
+<h2>💾 Meu progresso</h2>
+<p class="muted">O que a Elisa conquista fica salvo neste dispositivo. Ao abrir novamente, a jornada continua de onde parou.</p>
+<div class="stats">
+<div class="stat"><div class="muted">Histórias concluídas</div><div class="num" id="savedStories">0</div></div>
+<div class="stat"><div class="muted">Estrelas</div><div class="num" id="savedStars">0 ⭐</div></div>
+<div class="stat"><div class="muted">Dias lendo</div><div class="num" id="savedDays">0</div></div>
+<div class="stat"><div class="muted">Próxima história</div><div class="num" id="savedNext">1</div></div>
+</div>
+<div class="levelup" style="margin-top:16px"><b>🐱 Pingo diz:</b> “Seu progresso está guardado. Amanhã podemos continuar a aventura!”</div>
+</div>
+</section>
 </main>
 <footer>Mundo da Elisa — V8 • Do simples para o complexo • Sem punição por erro</footer>
 
 <script>
+const SAVE_KEY="mundo_da_elisa_v72_progress";
 let answered=[false,false,false], stars=5, currentStory=0;
+let nextStoryIndex=0;
+let progressState=null;
+function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(raw){const p=JSON.parse(raw);return {stars:Number.isFinite(p.stars)?p.stars:5,currentStory:Number.isInteger(p.currentStory)?Math.max(0,Math.min(p.currentStory,stories.length-1)):0,nextStoryIndex:Number.isInteger(p.nextStoryIndex)?Math.max(0,Math.min(p.nextStoryIndex,stories.length-1)):0,completed:Array.isArray(p.completed)?p.completed:[],days:Number.isInteger(p.days)?p.days:0,lastDate:p.lastDate||null};}}catch(e){}return {stars:5,currentStory:0,nextStoryIndex:0,completed:[],days:0,lastDate:null};}
+function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(progressState));}catch(e){}}
+function registerReadingDay(){const today=new Date().toISOString().slice(0,10);if(progressState.lastDate!==today){progressState.days+=1;progressState.lastDate=today;}saveProgress();}
 const stories=[
  {title:"A Folha Viajante",text:"Uma folha caiu de uma árvore. O vento levou a folha pelo jardim. Ela passou perto de uma flor e parou ao lado de uma pedra.<br><br>Uma menina encontrou a folha e colocou-a dentro de um livro. Agora, a folha tinha uma nova casa.",questions:[
   {q:"1. O que levou a folha pelo jardim?",o:["A chuva","O vento","Uma criança"],a:1},
@@ -237,6 +257,8 @@ const stories=[
  ]}
 ];
 let questions=stories[0].questions;
+progressState=loadProgress();
+stars=progressState.stars;currentStory=progressState.currentStory;nextStoryIndex=progressState.nextStoryIndex ?? currentStory;
 function renderStory(){
  const st=stories[currentStory];
  document.getElementById("story").innerHTML="<b>"+st.title+"</b><br><br>"+st.text;
@@ -257,13 +279,18 @@ function loadQuiz(){
 function answer(i,j,btn){
  const f=document.getElementById("f"+i);
  if(j===questions[i].a){
-  if(!answered[i]){answered[i]=true;stars+=2;document.getElementById("stars").textContent=stars+" ⭐";}
+  if(!answered[i]){answered[i]=true;stars+=2;document.getElementById("stars").textContent=stars+" ⭐";progressState.stars=stars;saveProgress();}
   f.textContent="Muito bem! Você encontrou a pista. ⭐";f.className="feedback good";btn.style.borderColor="#19a463";
   if(answered.every(Boolean))complete();
  }else{f.textContent="Ainda não. Tudo bem! Releia o trecho e tente outra vez.";f.className="feedback try";}
 }
 function hint(){const h=document.getElementById("hint");h.textContent="🐱 Pingo diz: procure no texto a palavra ou frase que ajuda a responder. Você consegue!";h.classList.remove("hidden");}
 function complete(){
+ registerReadingDay();
+ if(!progressState.completed.includes(currentStory)) progressState.completed.push(currentStory);
+ progressState.stars=stars;
+ if(currentStory<stories.length-1) progressState.nextStoryIndex=currentStory+1;
+ saveProgress();
  const total=questions.length, pct=Math.round((answered.filter(Boolean).length/total)*100);
  document.getElementById("progress").style.width=Math.min(95,25+(currentStory+1)*18)+"%";
  document.getElementById("days").textContent=String(currentStory+2);
@@ -287,9 +314,18 @@ function complete(){
  alert("Parabéns, Elisa! 🎉 Missão concluída. A próxima história foi liberada!");
 }
 function goNextStory(){
- if(currentStory<stories.length-1){currentStory++;renderStory();document.getElementById("startBtn").disabled=false;document.getElementById("story").scrollIntoView({behavior:"smooth",block:"center"});}
+ if(currentStory<stories.length-1){currentStory++;progressState.currentStory=currentStory;saveProgress();renderStory();document.getElementById("startBtn").disabled=false;document.getElementById("story").scrollIntoView({behavior:"smooth",block:"center"});}
+}
+function renderProgress(){
+ const done=progressState.completed.length;
+ document.getElementById("savedStories").textContent=done;
+ document.getElementById("savedStars").textContent=stars+" ⭐";
+ document.getElementById("savedDays").textContent=progressState.days;
+ document.getElementById("savedNext").textContent=Math.min(stories.length, (progressState.nextStoryIndex||currentStory)+1);
 }
 renderStory();
+document.getElementById("stars").textContent=stars+" ⭐";
+document.getElementById("days").textContent=String(progressState.days||0);
 
 function activity(type){
  const box=document.getElementById("activityBox"); box.classList.remove("hidden");
