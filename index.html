@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6f8b5b">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mundo da Elisa — V11.2</title>
+<title>Mundo da Elisa — V11.3</title>
 <style>
 :root{--bg:#f6f7f1;--card:#fff;--ink:#263127;--muted:#667267;--green:#6f8b5b;--green2:#dfead8;--gold:#e9b949;--line:#e1e6dc;--soft:#f4f7f1;--ok:#3d7b3b;--warn:#956c1a}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 <div id="completeBox" class="card hidden" style="margin-top:14px;background:#f3f8ef"><h2>🎉 Missão concluída!</h2><p id="completeMsg"></p><button onclick="nextStory()">➡️ Continuar aventura</button></div>
 </div></section>
 
-<div class="footer">Mundo da Elisa V11.2 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
+<div class="footer">Mundo da Elisa V11.3 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
 </main>
 
 <script>
@@ -229,10 +229,11 @@ function startChallenge(){
   document.getElementById("quiz").scrollIntoView({behavior:"smooth"});
 }
 function answer(i,j,btn){
-  if(!challengeStarted)return;
+  if(!challengeStarted || answers[i])return;
   const s=STORIES[current],q=s.qs[i],f=document.getElementById("f"+i);attemptMap[i]++;state.questionsAttempted++;state.total++;
   if(j===q.a){
-    if(!answers[i]){answers[i]=true;state.questionsCorrect++;state.correct++;state.stars+=2;btn.classList.add("correct")}
+    answers[i]=true;state.questionsCorrect++;state.correct++;state.stars+=2;btn.classList.add("correct");
+    document.querySelectorAll("#quiz .question")[i].querySelectorAll("button").forEach(b=>b.disabled=true);
     f.textContent="Muito bem! Você encontrou a pista. ⭐";f.className="feedback good";
     if(answers.every(Boolean))finish();
   }else{
