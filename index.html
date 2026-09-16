@@ -4,7 +4,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mundo da Elisa — V3</title>
+<title>Mundo da Elisa — V8</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--ink:#20263a;--muted:#697386;--purple:#7136c9;--pink:#ee4d9b;--green:#19a463;--gold:#f5b82e;--line:#e6e8f0;--soft:#faf8ff}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -94,16 +94,11 @@ button{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:poin
 <div class="card">
 <h2>🎯 Missão de hoje</h2>
 <p class="muted">Começaremos no nível mais simples. O sistema aumenta a dificuldade somente quando houver segurança.</p>
-<div class="story">
-<b>A Folha Viajante</b><br><br>
-Uma folha caiu de uma árvore. O vento levou a folha pelo jardim. Ela passou perto de uma flor e parou ao lado de uma pedra.
-<br><br>
-Uma menina encontrou a folha e colocou-a dentro de um livro. Agora, a folha tinha uma nova casa.
-</div>
+<div id="story" class="story"></div>
 <div id="quiz"></div>
-<div class="actions"><button onclick="loadQuiz()">Começar desafio</button><button class="light" onclick="hint()">💡 Pedir uma pista</button></div>
+<div class="actions"><button id="startBtn" onclick="loadQuiz()">Começar desafio</button><button class="light" onclick="hint()">💡 Pedir uma pista</button></div>
 <div id="adaptive" class="notice hidden" style="margin-top:12px"></div>
-
+<div id="nextStory" class="levelup hidden" style="margin-top:12px"></div>
 <div id="hint" class="notice hidden" style="margin-top:12px"></div>
 </div>
 
@@ -215,34 +210,86 @@ Uma menina encontrou a folha e colocou-a dentro de um livro. Agora, a folha tinh
 </div>
 </section>
 </main>
-<footer>Mundo da Elisa — V3 • Do simples para o complexo • Sem punição por erro</footer>
+<footer>Mundo da Elisa — V8 • Do simples para o complexo • Sem punição por erro</footer>
 
 <script>
-let answered=[false,false,false], stars=5;
-const questions=[
-{q:"1. O que levou a folha pelo jardim?",o:["A chuva","O vento","Uma criança"],a:1},
-{q:"2. Onde a folha parou?",o:["Ao lado de uma pedra","Dentro de uma mochila","No telhado"],a:0},
-{q:"3. O que a menina fez com a folha?",o:["Jogou fora","Colocou dentro de um livro","Levou para a escola"],a:1}
+let answered=[false,false,false], stars=5, currentStory=0;
+const stories=[
+ {title:"A Folha Viajante",text:"Uma folha caiu de uma árvore. O vento levou a folha pelo jardim. Ela passou perto de uma flor e parou ao lado de uma pedra.<br><br>Uma menina encontrou a folha e colocou-a dentro de um livro. Agora, a folha tinha uma nova casa.",questions:[
+  {q:"1. O que levou a folha pelo jardim?",o:["A chuva","O vento","Uma criança"],a:1},
+  {q:"2. Onde a folha parou?",o:["Ao lado de uma pedra","Dentro de uma mochila","No telhado"],a:0},
+  {q:"3. O que a menina fez com a folha?",o:["Jogou fora","Colocou dentro de um livro","Levou para a escola"],a:1}
+ ]},
+ {title:"O Guarda-Chuva Amarelo",text:"Lia saiu de casa e percebeu que o céu estava cheio de nuvens. Ela pegou seu guarda-chuva amarelo antes de caminhar até a escola.<br><br>No caminho, começou a chover. Lia abriu o guarda-chuva e chegou à escola protegida da chuva.",questions:[
+  {q:"1. Como estava o céu?",o:["Cheio de estrelas","Cheio de nuvens","Sem nuvens"],a:1},
+  {q:"2. O que Lia pegou antes de sair?",o:["Um livro","Uma bola","Um guarda-chuva amarelo"],a:2},
+  {q:"3. Por que Lia abriu o guarda-chuva?",o:["Porque começou a chover","Porque estava calor","Porque chegou em casa"],a:0}
+ ]},
+ {title:"O Mistério da Caixa",text:"No quintal, Bia encontrou uma pequena caixa de papelão. Ela estava fechada e tinha três furinhos na tampa.<br><br>Bia ouviu um barulhinho vindo de dentro. Com cuidado, abriu a caixa e encontrou um filhote de passarinho. Ele havia caído do ninho.",questions:[
+  {q:"1. Onde Bia encontrou a caixa?",o:["No quintal","Na escola","Na cozinha"],a:0},
+  {q:"2. O que havia dentro da caixa?",o:["Um brinquedo","Um filhote de passarinho","Uma pedra"],a:1},
+  {q:"3. Por que havia furinhos na tampa?",o:["Para entrar ar","Para guardar água","Para enfeitar a caixa"],a:0}
+ ]},
+ {title:"A Viagem do Pingo",text:"Pingo era um gatinho curioso. Certa manhã, seguiu uma borboleta pelo jardim e chegou até uma árvore antiga.<br><br>Ali encontrou uma fita azul presa em um galho. Pingo brincou com a fita e depois voltou para casa quando ouviu sua família chamando.",questions:[
+  {q:"1. O que Pingo seguiu?",o:["Uma borboleta","Um cachorro","Uma folha"],a:0},
+  {q:"2. O que ele encontrou na árvore?",o:["Uma fita azul","Uma bola","Um livro"],a:0},
+  {q:"3. Quando Pingo voltou para casa?",o:["Quando anoiteceu","Quando ouviu sua família chamando","Quando começou a chover"],a:1}
+ ]}
 ];
-function show(id){["home","biblioteca","responsavel"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));window.scrollTo({top:0,behavior:"smooth"});}
-function loadQuiz(){const q=document.getElementById("quiz");q.innerHTML="";questions.forEach((x,i)=>{const d=document.createElement("div");d.className="question";d.innerHTML="<b>"+x.q+"</b><div class='options'>"+x.o.map((v,j)=>"<button class='light' onclick='answer("+i+","+j+",this)'>"+v+"</button>").join("")+"</div><div class='feedback' id='f"+i+"'></div>";q.appendChild(d);});}
-function answer(i,j,btn){const f=document.getElementById("f"+i);if(j===questions[i].a){if(!answered[i]){answered[i]=true;stars+=2;document.getElementById("stars").textContent=stars+" ⭐";}f.textContent="Muito bem! Você encontrou a pista. ⭐";f.className="feedback good";btn.style.borderColor="#19a463";if(answered.every(Boolean))complete();}else{f.textContent="Ainda não. Tudo bem! Releia o trecho e tente outra vez.";f.className="feedback try";}}
-function hint(){const h=document.getElementById("hint");h.textContent="Pista: procure no texto a palavra que mostra o que fez a folha se movimentar.";h.classList.remove("hidden");}
-function complete(){
- document.getElementById("progress").style.width="55%";
- unlockPhase(1);
- document.getElementById("days").textContent="2";
- const total=questions.length, pct=Math.round((score/total)*100);
- const panel=document.getElementById("adaptive"); panel.classList.remove("hidden");
- let action,level,msg;
- if(pct===100){action="Avançar um pequeno passo";level="Um pouco mais complexo";msg="Excelente! A próxima atividade pode trazer um texto um pouco maior ou uma pergunta que exija uma conexão simples.";}
- else if(pct>=66){action="Reforçar e depois avançar";level="Manter nível";msg="Muito bom! Vamos reforçar o que foi aprendido antes de aumentar a dificuldade.";}
- else {action="Simplificar e reforçar";level="Mais apoio";msg="Tudo bem! A próxima atividade será mais curta e terá mais pistas. Aqui, errar é parte de aprender.";}
- panel.textContent="🐱 "+msg;
- const ps=document.getElementById("parentScore"), pa=document.getElementById("parentAction"), pl=document.getElementById("parentLevel");
- if(ps){ps.textContent=pct+"% de acerto"; ps.className=pct>=66?"status-ok":"status-warn"; pa.textContent=action; pl.textContent=level;}
- alert("Parabéns, Elisa! 🎉 Missão concluída. Você ganhou estrelas!");
+let questions=stories[0].questions;
+function renderStory(){
+ const st=stories[currentStory];
+ document.getElementById("story").innerHTML="<b>"+st.title+"</b><br><br>"+st.text;
+ document.getElementById("quiz").innerHTML="";
+ document.getElementById("hint").classList.add("hidden");
+ document.getElementById("adaptive").classList.add("hidden");
+ const next=document.getElementById("nextStory"); next.classList.add("hidden"); next.innerHTML="";
+ const btn=document.getElementById("startBtn"); btn.textContent="Começar desafio";
+ answered=[false,false,false]; questions=st.questions;
 }
+function show(id){["home","jornada","biblioteca","conteudo","responsavel"].forEach(x=>{const el=document.getElementById(x);if(el)el.classList.toggle("hidden",x!==id);});window.scrollTo({top:0,behavior:"smooth"});}
+function loadQuiz(){
+ const q=document.getElementById("quiz");q.innerHTML="";
+ answered=[false,false,false];
+ questions.forEach((x,i)=>{const d=document.createElement("div");d.className="question";d.innerHTML="<b>"+x.q+"</b><div class='options'>"+x.o.map((v,j)=>"<button class='light' onclick='answer("+i+","+j+",this)'>"+v+"</button>").join("")+"</div><div class='feedback' id='f"+i+"'></div>";q.appendChild(d);});
+ document.getElementById("startBtn").textContent="Desafio em andamento";
+}
+function answer(i,j,btn){
+ const f=document.getElementById("f"+i);
+ if(j===questions[i].a){
+  if(!answered[i]){answered[i]=true;stars+=2;document.getElementById("stars").textContent=stars+" ⭐";}
+  f.textContent="Muito bem! Você encontrou a pista. ⭐";f.className="feedback good";btn.style.borderColor="#19a463";
+  if(answered.every(Boolean))complete();
+ }else{f.textContent="Ainda não. Tudo bem! Releia o trecho e tente outra vez.";f.className="feedback try";}
+}
+function hint(){const h=document.getElementById("hint");h.textContent="🐱 Pingo diz: procure no texto a palavra ou frase que ajuda a responder. Você consegue!";h.classList.remove("hidden");}
+function complete(){
+ const total=questions.length, pct=Math.round((answered.filter(Boolean).length/total)*100);
+ document.getElementById("progress").style.width=Math.min(95,25+(currentStory+1)*18)+"%";
+ document.getElementById("days").textContent=String(currentStory+2);
+ const panel=document.getElementById("adaptive");panel.classList.remove("hidden");
+ let action,level,msg;
+ if(pct===100){action="Avançar um pequeno passo";level="Um pouco mais complexo";msg="Excelente! Você concluiu esta aventura. A próxima história já está pronta.";}
+ else if(pct>=66){action="Reforçar e depois avançar";level="Manter nível";msg="Muito bom! A próxima história mantém o apoio necessário para você continuar com segurança.";}
+ else {action="Simplificar e reforçar";level="Mais apoio";msg="Tudo bem! A próxima aventura terá mais pistas e um passo menor. Errar faz parte de aprender.";}
+ panel.textContent="🐱 "+msg;
+ const ps=document.getElementById("parentScore"),pa=document.getElementById("parentAction"),pl=document.getElementById("parentLevel");
+ if(ps){ps.textContent=pct+"% de acerto";ps.className=pct>=66?"status-ok":"status-warn";pa.textContent=action;pl.textContent=level;}
+ const next=document.getElementById("nextStory");
+ if(currentStory<stories.length-1){
+   const nxt=stories[currentStory+1];
+   next.innerHTML="<b>🎉 Missão concluída!</b><br><span class='muted'>A próxima aventura foi liberada: <b>"+nxt.title+"</b>.</span><div class='actions'><button onclick='goNextStory()'>➡️ Ir para a próxima história</button></div>";
+   next.classList.remove("hidden");
+ }else{
+   next.innerHTML="<b>👑 Você chegou à última aventura desta sequência!</b><br><span class='muted'>Agora podemos criar novas histórias e desafios para continuar a jornada.</span>";next.classList.remove("hidden");
+ }
+ document.getElementById("startBtn").disabled=true;
+ alert("Parabéns, Elisa! 🎉 Missão concluída. A próxima história foi liberada!");
+}
+function goNextStory(){
+ if(currentStory<stories.length-1){currentStory++;renderStory();document.getElementById("startBtn").disabled=false;document.getElementById("story").scrollIntoView({behavior:"smooth",block:"center"});}
+}
+renderStory();
 
 function activity(type){
  const box=document.getElementById("activityBox"); box.classList.remove("hidden");
@@ -286,70 +333,5 @@ function unlockPhase(n){
 
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js").catch(()=>{});}</script>
-
-<script>
-/* Mundo da Elisa V7.1 — progressão entre histórias */
-(function () {
-  const KEY = 'mundo_da_elisa_v71_progress';
-  const stories = [
-    {id:'folha-viajante', title:'A Folha Viajante'},
-    {id:'guarda-chuva-amarelo', title:'O Guarda-Chuva Amarelo'},
-    {id:'misterio-caixa', title:'O Mistério da Caixa'}
-  ];
-
-  function getProgress(){
-    try { return JSON.parse(localStorage.getItem(KEY) || '{"completed":[]}'); }
-    catch(e){ return {completed:[]}; }
-  }
-  function saveProgress(p){ localStorage.setItem(KEY, JSON.stringify(p)); }
-
-  window.MundoElisaV71 = {
-    completeStory: function(id){
-      const p=getProgress();
-      if(!p.completed.includes(id)) p.completed.push(id);
-      saveProgress(p);
-      return this.nextStory(id);
-    },
-    nextStory: function(id){
-      const i=stories.findIndex(s=>s.id===id);
-      return i>=0 && i<stories.length-1 ? stories[i+1] : null;
-    }
-  };
-
-  // Adds a non-invasive continuation card after a challenge is visibly completed.
-  function showNextCard(currentId){
-    const next=window.MundoElisaV71.nextStory(currentId);
-    if(!next) return;
-    if(document.getElementById('mde-v71-next')) return;
-
-    const card=document.createElement('div');
-    card.id='mde-v71-next';
-    card.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;width:min(92vw,520px);padding:18px;border-radius:20px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.18);text-align:center;font-family:system-ui,sans-serif;';
-    card.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:8px">A próxima aventura está liberada!</div><div style="margin-bottom:14px">Vamos conhecer <b>'+next.title+'</b>?</div><button id="mde-v71-go" style="border:0;border-radius:14px;padding:12px 20px;font-weight:700;cursor:pointer">Continuar aventura</button>';
-    document.body.appendChild(card);
-    document.getElementById('mde-v71-go').onclick=function(){
-      // Prefer an existing navigation control if the app exposes one.
-      const candidates=[...document.querySelectorAll('button,a')].filter(el=>/próxima|proxima|biblioteca|avançar|avancar|continuar/i.test(el.textContent||''));
-      const target=candidates.find(el=>el.id!=='mde-v71-go');
-      if(target) target.click();
-      else {
-        card.remove();
-        const msg=document.createElement('div');
-        msg.textContent='A próxima história foi liberada. Escolha-a na Biblioteca!';
-        msg.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:10000;background:#d9ead3;padding:12px 18px;border-radius:14px;font-family:system-ui,sans-serif;font-weight:600;';
-        document.body.appendChild(msg);
-        setTimeout(()=>msg.remove(),3500);
-      }
-    };
-  }
-
-  // Expose a simple hook for the app to call at completion.
-  window.addEventListener('mde:story-complete', function(e){
-    const id=e.detail && e.detail.id;
-    if(id) showNextCard(id);
-  });
-})();
-</script>
-
 </body>
 </html>
