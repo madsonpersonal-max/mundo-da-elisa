@@ -1,10 +1,1 @@
-{
-  "name": "Mundo da Elisa",
-  "short_name": "Mundo da Elisa",
-  "description": "Uma jornada de leitura sem frustração.",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f6f7fb",
-  "theme_color": "#7136c9",
-  "lang": "pt-BR"
-}
+{"name":"Mundo da Elisa","short_name":"Mundo da Elisa","start_url":"./","display":"standalone","background_color":"#f6f7f1","theme_color":"#6f8b5b","lang":"pt-BR","icons":[]}
