@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6f8b5b">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Mundo da Elisa — V11.3</title>
+<title>Mundo da Elisa — V12</title>
 <style>
 :root{--bg:#f6f7f1;--card:#fff;--ink:#263127;--muted:#667267;--green:#6f8b5b;--green2:#dfead8;--gold:#e9b949;--line:#e1e6dc;--soft:#f4f7f1;--ok:#3d7b3b;--warn:#956c1a}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
@@ -17,7 +17,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stat{background:var(--soft);padding:12px;border-radius:14px}.num{font-size:22px;font-weight:900}
 .progress{height:11px;background:#e9eee5;border-radius:20px;overflow:hidden}.fill{height:100%;background:var(--green);transition:.35s}
 .phases{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.phase{padding:10px;border-radius:13px;background:#eef1eb;border:2px solid transparent;font-size:12px}.phase.active{background:#e9f1e4;border-color:#9ab68b}.phase.done{background:#e3f1e1;border-color:#87b27b}
-.story{background:#fffdf6;border:1px solid #eee3c7;border-radius:17px;padding:18px;line-height:1.72;font-size:17px}.story h2{margin-top:0}.question{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fafbf9}.options{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.options button{background:#fff;color:var(--ink);border:1px solid var(--line)}.options button.correct{border-color:#5e9b5a;background:#e9f5e7}.options button.wrong{border-color:#e2c58b;background:#fff8e7}.feedback{margin-top:9px;font-weight:800}.good{color:var(--ok)}.try{color:var(--warn)}
+.story{background:#fffdf6;border:1px solid #eee3c7;border-radius:17px;padding:18px;line-height:1.72;font-size:17px}.story h2{margin-top:0}.question{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:15px;background:#fafbf9}.orderbank,.orderpicked{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ordercard{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-weight:800}.orderpicked{min-height:44px;padding:8px;background:#fffdf6;border-radius:12px;border:1px dashed #d7cda9}.ordercard.selected{opacity:.5}.orderactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.options{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.options button{background:#fff;color:var(--ink);border:1px solid var(--line)}.options button.correct{border-color:#5e9b5a;background:#e9f5e7}.options button.wrong{border-color:#e2c58b;background:#fff8e7}.feedback{margin-top:9px;font-weight:800}.good{color:var(--ok)}.try{color:var(--warn)}
 .catbox{display:flex;gap:12px;align-items:center;background:#fff8fc;border:1px solid #f0dce7;border-radius:18px;padding:13px}.cat{font-size:62px}.cattext{flex:1}.hidden{display:none!important}.notice{padding:12px;border-radius:14px;background:#fff7df;border:1px solid #eedb9e}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.storycard{padding:15px;border:1px solid var(--line);border-radius:16px;background:#fff}.storycard.locked{opacity:.52}.badge{display:inline-block;padding:7px 10px;border-radius:12px;background:#fff4c9;margin:3px;font-size:12px;font-weight:800}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);font-size:13px}.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
 .mini{font-size:12px;color:var(--muted)}.support-ok{background:#eef7e9;border:1px solid #d5e6ca;color:#46633e}
@@ -106,7 +106,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;bord
 <div id="completeBox" class="card hidden" style="margin-top:14px;background:#f3f8ef"><h2>🎉 Missão concluída!</h2><p id="completeMsg"></p><button onclick="nextStory()">➡️ Continuar aventura</button></div>
 </div></section>
 
-<div class="footer">Mundo da Elisa V11.3 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
+<div class="footer">Mundo da Elisa V12 • 30 aventuras • Progressão adaptativa • Sem punição por erro • Progresso salvo no dispositivo</div>
 </main>
 
 <script>
@@ -225,8 +225,42 @@ function renderReader(){
 }
 function startChallenge(){
   const s=STORIES[current];answers=new Array(s.qs.length).fill(false);attemptMap=new Array(s.qs.length).fill(0);challengeStarted=true;
-  document.getElementById("quiz").innerHTML=s.qs.map((q,i)=>`<div class="question"><b>${q.q}</b><div class="options">${q.opts.map((o,j)=>`<button onclick="answer(${i},${j},this)">${o}</button>`).join("")}</div><div class="feedback" id="f${i}"></div></div>`).join("");
+  window.orderSelections={};
+  document.getElementById("quiz").innerHTML=s.qs.map((q,i)=>{
+    if(q.type==="order" && q.opts[q.a].includes("→")){
+      const target=q.opts[q.a].split("→").map(x=>x.trim());
+      const bank=[...target].sort(()=>Math.random()-.5);
+      return `<div class="question"><b>${q.q}</b><div class="mini">Toque nas partes na ordem em que aparecem na história.</div><div class="orderpicked" id="picked${i}"></div><div class="orderbank" id="bank${i}">${bank.map(o=>`<button class="ordercard" onclick="pickOrder(${i},${JSON.stringify(o)},this)">${o}</button>`).join("")}</div><div class="orderactions"><button class="secondary" onclick="resetOrder(${i})">↩ Limpar ordem</button></div><div class="feedback" id="f${i}"></div></div>`;
+    }
+    return `<div class="question"><b>${q.q}</b><div class="options">${q.opts.map((o,j)=>`<button onclick="answer(${i},${j},this)">${o}</button>`).join("")}</div><div class="feedback" id="f${i}"></div></div>`;
+  }).join("");
   document.getElementById("quiz").scrollIntoView({behavior:"smooth"});
+}
+function pickOrder(i,value,btn){
+  if(!challengeStarted || answers[i] || btn.disabled)return;
+  const sel=window.orderSelections[i]||(window.orderSelections[i]=[]);
+  sel.push(value);btn.disabled=true;btn.classList.add("selected");
+  document.getElementById("picked"+i).innerHTML=sel.map((x,k)=>`<span class="ordercard">${k+1}. ${x}</span>`).join("");
+  const q=STORIES[current].qs[i],target=q.opts[q.a].split("→").map(x=>x.trim());
+  if(sel.length===target.length){
+    attemptMap[i]++;state.questionsAttempted++;state.total++;
+    const f=document.getElementById("f"+i);
+    if(sel.every((x,k)=>x===target[k])){
+      answers[i]=true;state.questionsCorrect++;state.correct++;state.stars+=2;
+      document.querySelectorAll("#quiz .question")[i].querySelectorAll("button").forEach(b=>b.disabled=true);
+      f.textContent="Muito bem! Você organizou as pistas. ⭐";f.className="feedback good";
+      if(answers.every(Boolean))finish();
+    }else{
+      f.textContent="Tudo bem. Releia o trecho e tente outra vez.";f.className="feedback try";
+    }
+    save();
+  }
+}
+function resetOrder(i){
+  if(answers[i])return;
+  window.orderSelections[i]=[];
+  document.getElementById("picked"+i).innerHTML="";
+  document.querySelectorAll("#quiz .question")[i].querySelectorAll(".orderbank button").forEach(b=>{b.disabled=false;b.classList.remove("selected")});
 }
 function answer(i,j,btn){
   if(!challengeStarted || answers[i])return;
