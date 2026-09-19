@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atendente — Cabana Night Run 2026</title>
+<style>
+:root{--bg:#100b16;--card:#191222;--line:#3b2a49;--text:#f5f0f7;--muted:#b9adbf;--green:#b8ff3d;--purple:#9b5cff;--danger:#ff6577;--yellow:#ffd35a}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0c0910,#171020 55%,#100b16);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+header{padding:24px 5%;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.logo{font-weight:900;letter-spacing:.4px}.logo span{color:var(--green)}.tag{font-size:12px;color:#171020;background:var(--green);padding:7px 10px;border-radius:999px;font-weight:800}
+main{width:min(1180px,92%);margin:30px auto}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}.card{background:rgba(25,18,34,.95);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 15px 40px rgba(0,0,0,.2)}
+h1,h2{margin:0 0 8px}.muted{color:var(--muted)}.status{display:inline-block;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-top:8px}
+.s-wait{background:#3b2e10;color:var(--yellow)}.s-review{background:#263d13;color:var(--green)}.s-ok{background:#123e2b;color:#77ffc4}.s-error{background:#451e27;color:#ff9eaa}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px}.field{background:#120d18;border:1px solid var(--line);border-radius:12px;padding:12px}.field small{display:block;color:var(--muted);margin-bottom:5px}.field b{font-size:15px;word-break:break-word}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:pointer}.primary{background:var(--green);color:#10130a}.secondary{background:#2a2033;color:var(--text);border:1px solid var(--line)}.danger{background:#5a202b;color:#fff}.yellow{background:var(--yellow);color:#17120a}
+.metric{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}.metric:last-child{border-bottom:0}.metric b{font-size:22px}
+.notice{padding:14px;border-radius:12px;background:#120d18;border:1px solid var(--line);margin-top:14px}.notice strong{display:block;margin-bottom:5px}
+.audit{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;max-height:240px;overflow:auto;white-space:pre-wrap}
+.empty{padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}.modalbox{width:min(720px,100%);max-height:90vh;overflow:auto;background:#191222;border:1px solid #3b2a49;border-radius:18px;padding:22px}.modalbox input,.modalbox select{width:100%;margin-top:6px;background:#120d18;color:#fff;border:1px solid #3b2a49;border-radius:10px;padding:11px}.modalgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.modalfield{margin-top:12px}.modalfield label{font-size:12px;color:#b9adbf}.modalhint{font-size:12px;color:#b9adbf;margin-top:5px}@media(max-width:650px){.modalgrid{grid-template-columns:1fr}}@media(max-width:800px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+
+.successHero{text-align:center;padding:8px 8px 16px}.successIcon{width:54px;height:54px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;background:#172c16;border:1px solid #5e9b4f;color:#a6ff00}.successHero h3{margin:0 0 7px;font-size:24px}.successHero p{margin:0 auto;max-width:560px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CABANA <span>NIGHT RUN 2026</span> — Painel do Atendente</div><span id="contadorFilaV5" class="tag" style="margin-left:8px">Inscrições: 0</span>
+  <div class="tag">HOMOLOGAÇÃO</div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <h1>Fila de validação</h1>
+<div id="cpfOnlyNotice" style="margin:10px 0;padding:10px 12px;border-radius:10px;
+background:#211b28;border:1px solid #3d3347;color:#bbb;font-size:13px">
+  <strong style="color:#fff">Regra V9:</strong> o atleta é consultado e identificado na interface pelo CPF.
+  IDs técnicos permanecem somente para controle interno e auditoria.
+</div>
+
+      <p class="muted">Consulta por CPF e cadastro de inscrições presenciais.</p>
+      <div class="actions"><button class="primary" onclick="openPresencial()">+ Nova inscrição presencial</button></div>
+      <div id="registration"></div>
+    </section>
+
+    <aside class="card">
+      <h2>Resumo</h2>
+      <div class="metric"><span>Inscrição</span><b id="mIns">0</b></div>
+      <div class="metric"><span>Comprovante</span><b id="mProof">0</b></div>
+      <div class="metric"><span>Confirmada</span><b id="mOk">0</b></div>
+      <div class="metric"><span>Correção</span><b id="mCorrection">0</b></div>
+      <div class="actions">
+        <button class="secondary" onclick="refresh()">Atualizar</button>
+        <button class="danger" onclick="resetDemo()">Zerar homologação</button>
+      </div>
+      <div class="notice">
+        <strong>Importante</strong>
+        <span class="muted">Esta página é apenas para homologação. GitHub Pages + localStorage não fornece autenticação, banco de dados ou segurança de produção.</span>
+      </div>
+    </aside>
+  </div>
+
+  
+<section id="filaInscricoes" class="card" style="margin-top:18px">
+  <h2>Fila de inscrições presenciais</h2>
+  <p class="muted">Todos os atletas cadastrados nesta homologação aparecem aqui. Consulta por CPF, modalidade, origem e status.</p>
+  <div class="actions">
+    <button class="secondary" onclick="renderFilaInscricoes()">Atualizar lista</button>
+<button type="button" onclick="abrirCheckin()">Check-in / Kits</button>
+<button type="button" onclick="abrirNumeracao()">Número de peito / QR</button>
+
+  </div>
+  <div style="overflow:auto;margin-top:12px">
+    <table style="width:100%;border-collapse:collapse;min-width:850px">
+      <thead><tr>
+        <th style="text-align:left;padding:10px">CPF</th>
+        <th style="text-align:left;padding:10px">Atleta</th>
+        <th style="text-align:left;padding:10px">Modalidade</th>
+        <th style="text-align:left;padding:10px">Origem</th>
+        <th style="text-align:left;padding:10px">Empresa</th>
+        <th style="text-align:left;padding:10px">Lote</th>
+        <th style="text-align:left;padding:10px">Status</th>
+      </tr></thead>
+      <tbody id="tblFilaInscricoes"></tbody>
+    </table>
+  </div>
+</section>
+<section class="card" style="margin-top:18px">
+    <h2>Auditoria</h2>
+    <div id="audit" class="audit muted">Nenhum evento registrado.</div>
+  </section>
+
+<section id="bonificacoes-v95" style="margin:28px 0;padding:24px;border:1px solid #3b2a4f;border-radius:18px;background:#140d1d">
+<h2>Bonificação — inscrição autorizada</h2>
+<p>O Atendente pode registrar a bonificação. O cadastro é gratuito, consome 1 vaga e exige identificação de quem autorizou e o motivo.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+<label>CPF do atleta *<input id="b95_cpf" maxlength="14" placeholder="CPF"></label>
+<label>Nome do atleta *<input id="b95_nome" placeholder="Nome completo"></label>
+<label>Modalidade *<select id="b95_mod"><option value="corrida">Corrida 7 km</option><option value="infantil">Corridinha Infantil</option></select></label>
+<label>Tamanho da camisa *<select id="b95_camisa"></select></label>
+<label>Motivo da bonificação *<input id="b95_motivo" placeholder="Ex.: parceria, cortesia, premiação"></label>
+<label>Autorizado por *<input id="b95_autorizador" placeholder="Nome de quem autorizou"></label>
+</div>
+<button id="b95_salvar" style="margin-top:16px">Registrar bonificação</button>
+<div id="b95_msg" style="margin-top:14px"></div>
+</section>
+</main>
+
+<script>
+const KEY="cnr26_homologacao";
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}}
+function save(s){localStorage.setItem(KEY,JSON.stringify(s))}
+function audit(s,action){
+  s.audit=s.audit||[];
+  s.audit.unshift(new Date().toLocaleString("pt-BR")+" — "+action);
+  save(s);
+}
+function statusClass(st){
+  if(st==="INSCRIÇÃO CONFIRMADA") return "s-ok";
+  if(st==="SOLICITAR CORREÇÃO" || st==="PAGAMENTO NÃO IDENTIFICADO") return "s-error";
+  if(st==="COMPROVANTE ENVIADO" || st==="EM VALIDAÇÃO") return "s-review";
+  return "s-wait";
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function refresh(){
+  const s=load();
+  const box=document.getElementById("registration");
+  if(!s.cpf){
+    box.innerHTML='<div class="empty">Nenhuma inscrição de homologação encontrada.<br><br>Abra o site público, faça uma inscrição de teste e envie um comprovante.</div>';
+  }else{
+    const canAnalyze=["COMPROVANTE ENVIADO","EM VALIDAÇÃO","PAGAMENTO NÃO IDENTIFICADO","SOLICITAR CORREÇÃO"].includes(s.status);
+    box.innerHTML=`
+      <div class="notice">
+        <strong>CPF ${esc(s.cpf)}</strong>
+        <span class="status ${statusClass(s.status)}">${esc(s.status||"AGUARDANDO PAGAMENTO")}</span>
+      </div>
+      <div class="row">
+        <div class="field"><small>Atleta</small><b>${esc(s.nome)}</b></div>
+        <div class="field"><small>CPF</small><b>${esc(s.cpf)}</b></div>
+        <div class="field"><small>Valor esperado</small><b>R$ ${Number(s.valor||0).toFixed(2).replace(".",",")}</b></div>
+        <div class="field"><small>Camisa</small><b>${esc(s.camisa)}</b></div>
+        ${s.responsavel?`<div class="field"><small>Responsável</small><b>${esc(s.responsavel.nome)}</b></div><div class="field"><small>CPF responsável</small><b>${esc(s.responsavel.cpf)}</b></div>`:""}
+        <div class="field"><small>Comprovante</small><b>${esc(s.proofName||"Não enviado")}</b></div>
+        <div class="field"><small>Enviado em</small><b>${s.proofSentAt?new Date(s.proofSentAt).toLocaleString("pt-BR"):"—"}</b></div>
+      </div>
+      ${(s.status==="SOLICITAR CORREÇÃO" || s.status==="PAGAMENTO NÃO IDENTIFICADO") && s.paymentNote?'<div class="notice"><strong>Motivo da correção</strong><span class="muted">'+esc(s.paymentNote)+'</span></div>':''}
+      <div class="actions">
+        ${canAnalyze?'<button class="primary" onclick="approve()">Aprovar pagamento e confirmar inscrição</button>':''}
+        ${canAnalyze?'<button class="yellow" onclick="requestCorrection()">Solicitar correção</button>':''}
+        ${canAnalyze?'<button class="danger" onclick="notIdentified()">Pagamento não identificado</button>':''}
+      </div>
+      <div class="notice">
+        <strong>Regra do teste</strong>
+        <span class="muted">A aprovação simula: pagamento confirmado → inscrição confirmada → registro de auditoria → preparação da mensagem de WhatsApp. A consulta e identificação do atleta são feitas exclusivamente pelo CPF. Não há protocolo visível. Na versão real, a mensagem será enviada pela API oficial do WhatsApp/Meta.</span>
+      </div>`;
+  }
+  document.getElementById("mIns").textContent=s.protocol?1:0;
+  document.getElementById("mProof").textContent=s.proofName?1:0;
+  document.getElementById("mOk").textContent=s.status==="INSCRIÇÃO CONFIRMADA"?1:0;
+  document.getElementById("mCorrection").textContent=s.status==="SOLICITAR CORREÇÃO"?1:0;
+  document.getElementById("audit").textContent=(s.audit||[]).join("\\n")||"Nenhum evento registrado.";
+}
+function approve(){
+  const s=load(); if(!s.cpf)return;
+  s.status="INSCRIÇÃO CONFIRMADA";
+  s.paymentStatus="PAGAMENTO CONFIRMADO";
+  s.approvedAt=new Date().toISOString();
+  s.whatsappSimulation={event:"CONFIRMACAO_INSCRICAO",status:"PENDENTE_API",to:s.whatsapp||"",message:"Sua inscrição na Cabana Night Run 2026 foi confirmada. Consulta disponível pelo CPF cadastrado."};
+  audit(s,"ATENDENTE — pagamento aprovado e inscrição confirmada — CPF "+s.cpf);
+  refresh();
+  alert("Homologação: inscrição confirmada. A integração real com WhatsApp será feita pela API oficial.");
+}
+function requestCorrection(){
+  const s=load(); if(!s.cpf)return;
+  const note=prompt("Informe o motivo da correção (obrigatório):");
+  if(note===null)return;
+  const reason=String(note).trim();
+  if(!reason){
+    alert("O motivo da correção é obrigatório.");
+    return;
+  }
+  s.status="SOLICITAR CORREÇÃO";
+  s.paymentNote=reason;
+  s.correctionRequestedAt=new Date().toISOString();
+  s.correctionCount=Number(s.correctionCount||0)+1;
+  audit(s,"ATENDENTE — solicitou correção — CPF "+s.cpf+" — Motivo: "+reason);
+  refresh();
+}
+function notIdentified(){
+  const s=load(); if(!s.cpf)return;
+  const note=prompt("Informe o motivo do pagamento não identificado (obrigatório):");
+  if(note===null)return;
+  const reason=String(note).trim();
+  if(!reason){ alert("O motivo é obrigatório."); return; }
+  s.status="PAGAMENTO NÃO IDENTIFICADO";
+  s.paymentNote=reason;
+  s.paymentIssue="PAGAMENTO NÃO IDENTIFICADO";
+  s.paymentIssueAt=new Date().toISOString();
+  audit(s,"ATENDENTE — pagamento não identificado — CPF "+s.cpf+" — Motivo: "+reason);
+  refresh();
+}
+function resetDemo(){
+  if(confirm("Zerar somente os dados de homologação deste navegador?")){
+    localStorage.removeItem(KEY); refresh();
+  }
+}
+refresh();
+
+function openPresencial(){
+  ["pCpf","pNome","pNasc","pWhats","pEmail","pEquipe","pRespNome","pRespCpf","pRespWhats"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("pSexo").value=""; document.getElementById("pCidade").value="Barcarena"; document.getElementById("pMod").value=""; document.getElementById("pCamisa").value=""; document.getElementById("pPag").value=""; document.getElementById("pValor").value="R$ 0,00"; toggleResponsavel(); togglePagamentoEmpresa();
+  document.getElementById("presencialModal").classList.add("show");
+}
+function closePresencial(){
+  document.getElementById("presencialModal").classList.remove("show");
+}
+function toggleResponsavel(){
+  const show=document.getElementById("pMod").value==="infantil";
+  ["respNomeWrap","respCpfWrap","respWhatsWrap"].forEach(id=>document.getElementById(id).style.display=show?"block":"none");
+  const cpfLabel=document.getElementById("pCpfLabel");
+  const whatsLabel=document.getElementById("pWhatsLabel");
+  if(cpfLabel) cpfLabel.textContent=show?"CPF do atleta (opcional)":"CPF *";
+  if(whatsLabel) whatsLabel.textContent=show?"WhatsApp do atleta (opcional)":"WhatsApp *";
+}
+function updatePresencialValue(){
+  const mod=document.getElementById("pMod").value;
+  const pag=document.getElementById("pPag").value;
+  const origem=document.getElementById("pOrigem").value;
+  let value=0;
+  if(origem==="EMPRESA") value=0;
+  else {
+    if(mod==="individual") value=110;
+    if(mod==="socio") value=100;
+    if(mod==="infantil") value=60;
+    if(mod==="pcd" || pag==="Isento PCD" || pag==="Bonificação") value=0;
+  }
+  document.getElementById("pValor").value=origem==="EMPRESA" ? "R$ 0,00 — pago pela empresa/lote" : "R$ "+value.toFixed(2).replace(".",",");
+}
+
+function toggleEmpresaLote(){
+ const origem=document.getElementById("pOrigem").value;
+ const wrap=document.getElementById("empresaWrap");
+ if(wrap) wrap.style.display=origem==="EMPRESA"?"block":"none";
+ if(origem!=="EMPRESA"){document.getElementById("pLote").innerHTML='<option value="">Não se aplica</option>';return}
+ let lotes=[];try{lotes=JSON.parse(localStorage.getItem("cnr26_empresas_lotes_v2")||"[]")}catch(e){}
+ const mod=document.getElementById("pMod").value;
+ document.getElementById("pLote").innerHTML=lotes.filter(x=>x.status==="ATIVO"&&Number(x.contratadas||0)>Number(x.utilizadas||0)&&(!mod||x.modalidade==="Corrida 7 km"&&mod!=="infantil"||x.modalidade==="Corridinha Infantil"&&mod==="infantil")).map(x=>`<option value="${x.id}">${x.empresa} — ${x.modalidade} — ${Math.max(0,x.contratadas-x.utilizadas)} vagas</option>`).join('')||'<option value="">Nenhum lote disponível</option>';
+}
+
+function togglePagamentoEmpresa(){
+  const origem=document.getElementById("pOrigem").value;
+  const pag=document.getElementById("pPag");
+  if(!pag) return;
+  if(origem==="EMPRESA"){
+    pag.innerHTML='<option value="LOTE EMPRESA">Lote empresarial — pago pela empresa</option>';
+    pag.value="LOTE EMPRESA";
+    pag.disabled=true;
+  } else {
+    pag.disabled=false;
+    pag.innerHTML='<option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option>';
+    pag.value="";
+  }
+  updatePresencialValue();
+}
+
+function savePresencial(){
+  const cpf=document.getElementById("pCpf").value.replace(/\D/g,"");
+  const nome=document.getElementById("pNome").value.trim();
+  const nasc=document.getElementById("pNasc").value;
+  const sexo=document.getElementById("pSexo").value;
+  const whats=document.getElementById("pWhats").value.trim();
+  const email=document.getElementById("pEmail").value.trim();
+  const cidade=document.getElementById("pCidade").value.trim();
+  const mod=document.getElementById("pMod").value;
+  const camisa=document.getElementById("pCamisa").value;
+  const pag=document.getElementById("pPag").value;
+  const origem=document.getElementById("pOrigem").value;
+  const loteId=document.getElementById("pLote").value;
+  const respNome=document.getElementById("pRespNome").value.trim();
+  const respCpf=document.getElementById("pRespCpf").value.replace(/\D/g,"");
+  const respWhats=document.getElementById("pRespWhats").value.trim();
+  const isInfantil = mod==="infantil";
+  if(!nome || !nasc || !sexo || !cidade || !mod || !camisa || !pag){
+    alert("Preencha todos os campos obrigatórios.");
+    return;
+  }
+  if(!isInfantil && (!cpf || cpf.length!==11 || !whats)){
+    alert("Para a Corrida 7 km, CPF e WhatsApp do atleta são obrigatórios.");
+    return;
+  }
+  if(isInfantil && cpf && cpf.length!==11){
+    alert("Se informar o CPF do atleta infantil, ele deve conter 11 dígitos.");
+    return;
+  }
+  if(origem==="EMPRESA" && !loteId){ alert("Selecione o lote da empresa."); return; }
+  if(mod==="infantil" && (!respNome || respCpf.length!==11 || !respWhats)){
+    alert("Na Corridinha Infantil, o nome, CPF e WhatsApp do responsável são obrigatórios. O CPF e o WhatsApp da criança são opcionais.");
+    return;
+  }
+  if(mod==="infantil"){
+    const d=new Date(nasc+"T00:00:00");
+    const limit=new Date("2026-12-31T23:59:59");
+    let age=limit.getFullYear()-d.getFullYear();
+    const md=limit.getMonth()-d.getMonth();
+    if(md<0 || (md===0 && limit.getDate()<d.getDate())) age--;
+    if(age<4 || age>12){ alert("A Corridinha Infantil aceita atletas de 4 a 12 anos até 31/12/2026."); return; }
+  }
+  const state=load();
+  let lotes=[]; try{lotes=JSON.parse(localStorage.getItem("cnr26_empresas_lotes_v2")||"[]")}catch(e){}
+  const lote=origem==="EMPRESA"?lotes.find(x=>x.id===loteId):null;
+  if(origem==="EMPRESA" && (!lote || lote.status!=="ATIVO" || Number(lote.utilizadas||0)>=Number(lote.contratadas||0))){alert("Lote inválido ou sem vagas disponíveis.");return;}
+  if(cpf && state.cpf===cpf){
+    alert("Este CPF já possui uma inscrição nesta homologação.");
+    return;
+  }
+  if(isInfantil && !cpf && state.nome && state.nascimento && state.nome.trim().toUpperCase()===nome.trim().toUpperCase() && state.nascimento===nasc){
+    alert("Já existe uma inscrição infantil com este nome e data de nascimento nesta homologação.");
+    return;
+  }
+  const value=origem==="EMPRESA"?0:(mod==="individual"?110:mod==="socio"?100:mod==="infantil"?60:0);
+  if(origem==="EMPRESA" && pag!=="LOTE EMPRESA"){
+    alert("Inscrição de empresa usa pagamento pelo lote empresarial, sem cobrança individual.");
+    togglePagamentoEmpresa();
+    return;
+  }
+  
+if(mod==="pcd"){
+  let pcdRegs=0;
+  try{
+    const all=JSON.parse(localStorage.getItem("cnr26_inscricoes_v5")||"[]");
+    pcdRegs=all.filter(x=>/pcd/i.test(x.modality||x.modalidade||"") && !/cancel/i.test(x.status||"")).length;
+  }catch(e){}
+  if(pcdRegs>=10){ alert("As 10 vagas PCD presenciais já foram utilizadas."); return; }
+  const doc=document.getElementById("pPcdDoc")?.value||"";
+  if(doc!=="SIM"){ alert("Para PCD presencial, a documentação exigida deve ser conferida e marcada como SIM."); return; }
+}
+
+if(mod==="pcd" && pag!=="Isento PCD"){
+    alert("Para PCD presencial, a forma de pagamento deve ser Isento PCD.");
+    return;
+  }
+  const newState={
+    cpf, nome, nascimento:nasc, sexo, whatsapp:whats, email, cidade,
+    equipe:document.getElementById("pEquipe").value.trim(),
+    modalidade:mod, camisa, valor:origem==="EMPRESA"?0:value, paymentMethod:pag, origem, empresa:lote?lote.empresa:null, loteId:lote?lote.id:null,
+    responsavel: mod==="infantil" ? {nome:respNome, cpf:respCpf, whatsapp:respWhats} : null,
+    origin:"PRESENCIAL", status:(origem==="EMPRESA"||value===0)?"INSCRIÇÃO CONFIRMADA":"PAGAMENTO CONFIRMADO",
+    proofName:"—", proofSentAt:null, paymentStatus:value===0?"ISENTO":"REGISTRADO NO ATENDIMENTO",
+    audit: state.audit||[]
+  };
+  newState.audit.unshift(new Date().toLocaleString("pt-BR")+" — ATENDENTE — inscrição presencial criada — CPF "+cpf);
+  if(lote){ lote.utilizadas=Number(lote.utilizadas||0)+1; localStorage.setItem("cnr26_empresas_lotes_v2",JSON.stringify(lotes)); }
+  if(mod==="pcd"){
+    newState.pcd={presencial:true,documentacao:"CONFERIR PRESENCIALMENTE"};
+  }
+  save(newState);
+  try{
+    const regs=JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]');
+    if(!regs.some(x=>x.cpf===newState.cpf)){
+      regs.push({...newState, criadoEm:new Date().toISOString()});
+      localStorage.setItem('cnr26_inscricoes_v5',JSON.stringify(regs));
+    }
+  }catch(e){}
+
+  closePresencial();
+  document.getElementById("cpfSearch").value=formatCpf(cpf);
+  refresh(false);
+  document.getElementById("successPresCpf").textContent=formatCpf(cpf);
+  document.getElementById("successPresNome").textContent=nome;
+  document.getElementById("successPresMod").textContent=mod==="individual"?"Corrida 7 km — Público geral":mod==="socio"?"Corrida 7 km — Sócio/Equipe":mod==="infantil"?"Corridinha Infantil":"PCD presencial";
+  document.getElementById("successPresCamisa").textContent=camisa;
+  document.getElementById("successPresValor").textContent=origem==="EMPRESA" ? "R$ 0,00 — pago pela empresa/lote" : "R$ "+Number(value).toFixed(2).replace(".",",");
+  document.getElementById("successPresStatus").textContent=newState.status;
+  document.getElementById("successPresencialModal").classList.add("show");
+}
+</script>
+
+<div id="successPresencialModal" class="modal">
+  <div class="modalbox" style="max-width:560px;text-align:center">
+    <div class="successIcon">✓</div>
+    <h2>Inscrição realizada com sucesso!</h2>
+    <p class="muted">A inscrição presencial foi registrada no sistema de homologação.</p>
+    <div class="summary" style="text-align:left;margin-top:16px">
+      <div><span>CPF</span><b id="successPresCpf">-</b></div>
+      <div><span>Atleta</span><b id="successPresNome">-</b></div>
+      <div><span>Modalidade</span><b id="successPresMod">-</b></div>
+      <div><span>Camisa</span><b id="successPresCamisa">-</b></div>
+      <div><span>Valor</span><b id="successPresValor">-</b></div>
+      <div><span>Status</span><b id="successPresStatus">-</b></div>
+    </div>
+    <div class="notice" style="margin-top:14px"><strong>Próximo passo</strong><span class="muted">A inscrição já pode ser consultada pelo CPF na área pública.</span></div>
+    <div class="actions" style="justify-content:center;margin-top:16px"><button class="primary" onclick="document.getElementById('successPresencialModal').classList.remove('show')">Concluir</button></div>
+  </div>
+</div>
+
+<div id="presencialModal" class="modal">
+  <div class="modalbox">
+    <h2>Nova inscrição presencial</h2>
+    <p class="muted">Cadastro realizado pelo Atendente. Todos os dados ficam na homologação local.</p>
+    <div class="modalgrid">
+      <div class="modalfield"><label id="pCpfLabel">CPF *</label><input id="pCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
+      <div class="modalfield"><label>Nome completo *</label><input id="pNome" placeholder="Nome do atleta"></div>
+      <div class="modalfield"><label>Data de nascimento *</label><input id="pNasc" type="date"></div>
+      <div class="modalfield"><label>Sexo *</label><select id="pSexo"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option></select></div>
+      <div class="modalfield"><label id="pWhatsLabel">WhatsApp *</label><input id="pWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
+      <div class="modalfield"><label>E-mail</label><input id="pEmail" type="email" placeholder="Opcional"></div>
+      <div class="modalfield"><label>Cidade *</label><input id="pCidade" value="Barcarena"></div>
+      <div class="modalfield"><label>Equipe/Assessoria</label><input id="pEquipe" placeholder="Opcional"></div>
+      <div class="modalfield"><label>Origem *</label><select id="pOrigem" onchange="toggleEmpresaLote();updatePresencialValue();togglePagamentoEmpresa()"><option value="PRESENCIAL">Presencial</option><option value="EMPRESA">Empresa</option><option value="BONIFICACAO">Bonificação</option></select></div>
+      <div class="modalfield" id="empresaWrap" style="display:none"><label>Empresa / lote *</label><select id="pLote"></select></div>
+      <div class="modalfield"><label>Modalidade *</label><select id="pMod" onchange="toggleResponsavel();updatePresencialValue();toggleEmpresaLote();ajustarTamanhosCorridinha()"><option value="">Selecione</option><option value="individual">Corrida 7 km — Público geral</option><option value="socio">Corrida 7 km — Sócio/Equipe</option><option value="infantil">Corridinha Infantil</option><option value="pcd">PCD presencial</option></select></div>
+      <div class="modalfield" id="respNomeWrap" style="display:none"><label>Nome completo do responsável *</label><input id="pRespNome" placeholder="Responsável pelo atleta"></div>
+      <div class="modalfield" id="respCpfWrap" style="display:none"><label>CPF do responsável *</label><input id="pRespCpf" inputmode="numeric" placeholder="000.000.000-00"></div>
+      <div class="modalfield" id="respWhatsWrap" style="display:none"><label>WhatsApp do responsável *</label><input id="pRespWhats" inputmode="tel" placeholder="(91) 99999-9999"></div>
+      <div class="modalfield"><label>Tamanho da camisa *</label><select id="pCamisa" onchange="ajustarTamanhosCorridinha()"><option value="">Selecione</option><option value="PP">PP</option><option value="P">P</option><option value="M">M</option><option value="G">G</option><option value="GG">GG</option><option value="XG">XG</option></select></div>
+      
+<div class="modalfield" id="pcdDocWrap" style="display:none;grid-column:1/-1">
+  <label>Documentação PCD conferida *</label>
+  <select id="pPcdDoc">
+    <option value="">Selecione</option>
+    <option value="SIM">SIM — documentação conferida</option>
+    <option value="NAO">NÃO — não conferida</option>
+  </select>
+</div>
+
+<div class="modalfield"><label>Forma de pagamento *</label><select id="pPag" onchange="updatePresencialValue()"><option value="">Selecione</option><option>PIX</option><option>Dinheiro</option><option>Cartão</option><option>Isento PCD</option><option>Bonificação</option></select></div>
+      <div class="modalfield"><label>Valor</label><input id="pValor" readonly value="R$ 0,00"></div>
+    </div>
+    <div class="modalhint">Corridinha Infantil: CPF e WhatsApp da criança são opcionais; nome, CPF e WhatsApp do responsável são obrigatórios. Empresa: selecione o lote para consumir uma vaga corporativa. A inscrição empresarial não gera cobrança individual nem entra no financeiro do atendimento; o pagamento é controlado no lote da empresa. PCD: somente presencial, sujeito à conferência da documentação e disponibilidade das 10 vagas.</div>
+    <div class="actions">
+      <button class="primary" onclick="savePresencial()">Registrar inscrição</button>
+      <button class="secondary" onclick="closePresencial()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const REGKEY='cnr26_inscricoes_v5';
+  function getRegs(){
+    try { const v=JSON.parse(localStorage.getItem(REGKEY)||'[]'); return Array.isArray(v)?v:[]; }
+    catch(e){ return []; }
+  }
+  function setRegs(v){ localStorage.setItem(REGKEY,JSON.stringify(v)); renderFilaInscricoes(); }
+  window.CNR26Atendente={
+    getRegistrations:getRegs,
+    addRegistration:function(reg){
+      const v=getRegs();
+      if(v.some(x=>x.cpf===reg.cpf)) return {ok:false,error:'CPF já cadastrado.'};
+      v.push(reg); setRegs(v); return {ok:true};
+    }
+  };
+  window.renderFilaInscricoes=function(){
+    const body=document.getElementById('tblFilaInscricoes'); if(!body)return;
+    const rows=getRegs();
+    body.innerHTML=rows.map(x=>`<tr>
+      <td style="padding:10px">${x.cpf||''}</td>
+      <td style="padding:10px">${x.nome||''}</td>
+      <td style="padding:10px">${x.modalidade||''}</td>
+      <td style="padding:10px">${x.origem||'PRESENCIAL'}</td>
+      <td style="padding:10px">${x.empresa||'—'}</td>
+      <td style="padding:10px">${x.loteId||'—'}</td>
+      <td style="padding:10px">${x.status||'—'}</td>
+    </tr>`).join('') || '<tr><td colspan="7" style="padding:14px">Nenhuma inscrição registrada nesta fila.</td></tr>';
+  };
+  document.addEventListener('DOMContentLoaded',renderFilaInscricoes);
+})();
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ const c=document.getElementById('contadorFilaV5');
+ function up(){if(c){try{c.textContent='Inscrições: '+JSON.parse(localStorage.getItem('cnr26_inscricoes_v5')||'[]').length}catch(e){}}}
+ up(); window.addEventListener('storage',up);
+});
+</script>
+
+
+<style>
+#checkinModal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:9999}
+#checkinModal .ck-box{width:min(920px,94vw);max-height:92vh;overflow:auto;background:#17131d;color:#fff;border:1px solid #6d4aff;border-radius:18px;padding:22px;box-shadow:0 20px 60px #000}
+.ck-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}
+.ck-head h2{margin:0}.ck-close{background:#30283d;color:#fff;border:0;border-radius:10px;padding:8px 12px;cursor:pointer}
+.ck-search{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.ck-search input{flex:1;min-width:220px;padding:12px;border-radius:10px;border:1px solid #4e445c;background:#0f0c13;color:#fff}
+.ck-btn{border:0;border-radius:10px;padding:11px 15px;cursor:pointer;font-weight:700}.ck-primary{background:#9cff00;color:#101010}.ck-secondary{background:#6d4aff;color:#fff}.ck-muted{background:#30283d;color:#fff}
+.ck-card{background:#211b28;border-radius:14px;padding:17px;margin-top:12px}.ck-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.ck-item small{display:block;color:#aaa}.ck-item strong{display:block;margin-top:3px}
+.ck-alert{padding:11px;border-radius:10px;background:#38271d;margin:10px 0}.ck-ok{background:#18351d}.ck-danger{background:#421e26}
+.ck-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.ck-table{width:100%;border-collapse:collapse;margin-top:15px}.ck-table th,.ck-table td{padding:9px;border-bottom:1px solid #3a3243;text-align:left;font-size:13px}
+.ck-check{display:flex;gap:10px;align-items:center;margin:9px 0}.ck-check input{width:18px;height:18px}
+</style>
+
+<div id="checkinModal">
+ <div class="ck-box">
+  <div class="ck-head">
+   <h2>Check-in e Entrega de Kits</h2>
+   <button class="ck-close" onclick="fecharCheckin()">Fechar</button>
+  </div>
+  <div class="ck-search">
+   <input id="ckCpf" placeholder="Digite o CPF do atleta" inputmode="numeric" maxlength="14">
+   <button class="ck-btn ck-primary" onclick="buscarCheckin()">Buscar atleta</button>
+  </div>
+  <div id="ckResult"></div>
+ </div>
+</div>
+
+<script>
+(function(){
+ const KEY='cnr26_registrations';
+ const CKKEY='cnr26_checkins';
+
+ function regs(){
+   try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch(e){ return []; }
+ }
+ function checks(){
+   try { return JSON.parse(localStorage.getItem(CKKEY)||'[]'); } catch(e){ return []; }
+ }
+ function saveChecks(v){localStorage.setItem(CKKEY,JSON.stringify(v));}
+ function norm(v){return String(v||'').replace(/\D/g,'');}
+ function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+ function getVal(o, keys){for(const k of keys){if(o && o[k]!=null && o[k]!=='' )return o[k]}return ''}
+ function statusOf(r){return String(getVal(r,['status','situacao'])||'').toUpperCase();}
+ function confirmed(r){
+   const s=statusOf(r);
+   return ['INSCRIÇÃO CONFIRMADA','INSCRICAO CONFIRMADA','PAGAMENTO CONFIRMADO','CONFIRMADA','CONFIRMADO'].includes(s);
+ }
+ window.abrirCheckin=function(){
+   document.getElementById('checkinModal').style.display='flex';
+   document.getElementById('ckCpf').focus();
+   renderRecent();
+ }
+ window.fecharCheckin=function(){document.getElementById('checkinModal').style.display='none';}
+ window.buscarCheckin=function(){
+   const cpf=norm(document.getElementById('ckCpf').value);
+   const out=document.getElementById('ckResult');
+   if(!cpf){out.innerHTML='<div class="ck-alert ck-danger">Informe o CPF.</div>';return;}
+   const r=regs().find(x=>norm(getVal(x,['cpf','CPF']))===cpf);
+   if(!r){out.innerHTML='<div class="ck-alert ck-danger">Atleta não encontrado.</div>';return;}
+   renderAthlete(r);
+ }
+ function renderAthlete(r){
+   const id=getVal(r,['id','registrationId','inscricaoId','internalId'])||norm(getVal(r,['cpf']));
+   const c=checks().find(x=>String(x.registrationKey)===String(id) || norm(x.cpf)===norm(getVal(r,['cpf'])));
+   const st=statusOf(r);
+   let html='<div class="ck-card">';
+   html+='<div class="ck-grid">';
+   html+='<div class="ck-item"><small>Atleta</small><strong>'+esc(getVal(r,['name','nome']))+'</strong></div>';
+   html+='<div class="ck-item"><small>CPF</small><strong>'+esc(getVal(r,['cpf','CPF']))+'</strong></div>';
+   html+='<div class="ck-item"><small>Modalidade</small><strong>'+esc(getVal(r,['modality','modalidade']))+'</strong></div>';
+   html+='<div class="ck-item"><small>Camisa</small><strong>'+esc(getVal(r,['shirt','camisa','shirtSize','tamanho']))+'</strong></div>';
+   html+='<div class="ck-item"><small>Origem</small><strong>'+esc(getVal(r,['origin','origem']))+'</strong></div>';
+   html+='<div class="ck-item"><small>Empresa/Lote</small><strong>'+esc(getVal(r,['companyName','empresa']))+' / '+esc(getVal(r,['lotName','lote']))+'</strong></div>';
+   html+='</div>';
+   if(!confirmed(r)){
+     html+='<div class="ck-alert ck-danger">CHECK-IN BLOQUEADO: a inscrição não está confirmada. Status atual: '+esc(st||'NÃO INFORMADO')+'.</div></div>';
+     document.getElementById('ckResult').innerHTML=html; return;
+   }
+   if(c && c.kitDelivered){
+     html+='<div class="ck-alert ck-ok">KIT JÁ ENTREGUE em '+esc(c.dateTime)+' por '+esc(c.attendant||'atendente')+'. Nova entrega bloqueada.</div>';
+     html+='<div class="ck-grid"><div class="ck-item"><small>Camisa entregue</small><strong>'+esc(c.shirtDelivered?'SIM':'NÃO')+'</strong></div><div class="ck-item"><small>Forma de retirada</small><strong>'+esc(c.pickupType)+'</strong></div><div class="ck-item"><small>Documento conferido</small><strong>'+esc(c.documentChecked?'SIM':'NÃO')+'</strong></div></div>';
+   } else {
+     html+='<div class="ck-alert ck-ok">Inscrição confirmada. Pronto para Check-in.</div>';
+     html+='<div class="ck-card"><strong>Conferência obrigatória</strong>';
+     html+='<label class="ck-check"><input type="checkbox" id="ckDoc"> Documento original conferido</label>';
+     html+='<label class="ck-check"><input type="checkbox" id="ckShirt"> Camisa conferida/entregue</label>';
+     html+='<label class="ck-check"><input type="checkbox" id="ckKit"> Kit entregue</label>';
+     html+='<div style="margin-top:10px"><label>Forma de retirada</label><select id="ckPickup" style="width:100%;padding:10px;border-radius:9px;margin-top:5px"><option value="ATLETA">Atleta</option><option value="TERCEIRO_AUTORIZADO">Terceiro autorizado</option></select></div>';
+     html+='<div class="ck-actions"><button class="ck-btn ck-primary" onclick="registrarEntrega('+JSON.stringify(id)+','+JSON.stringify(norm(getVal(r,['cpf'])))+')">Confirmar entrega do kit</button></div>';
+     html+='</div>';
+   }
+   html+='</div>';
+   document.getElementById('ckResult').innerHTML=html;
+ }
+ window.registrarEntrega=function(regKey,cpf){
+   const doc=document.getElementById('ckDoc')?.checked;
+   const shirt=document.getElementById('ckShirt')?.checked;
+   const kit=document.getElementById('ckKit')?.checked;
+   const pickup=document.getElementById('ckPickup')?.value;
+   if(!doc||!shirt||!kit){alert('Conferência incompleta. Marque documento, camisa e kit antes de concluir.');return;}
+   const arr=checks();
+   if(arr.some(x=>x.kitDelivered && (String(x.registrationKey)===String(regKey)||norm(x.cpf)===cpf))){
+      alert('Este kit já foi entregue.'); return;
+   }
+   const now=new Date().toLocaleString('pt-BR');
+   arr.push({registrationKey:regKey,cpf,kitDelivered:true,shirtDelivered:true,documentChecked:true,pickupType:pickup,dateTime:now,attendant:'ATENDENTE',createdAt:new Date().toISOString()});
+   saveChecks(arr);
+   alert('Kit entregue e check-in registrado com sucesso.');
+   buscarCheckin();
+   renderRecent();
+ }
+ function renderRecent(){
+   const out=document.getElementById('ckResult');
+   const arr=checks().filter(x=>x.kitDelivered).slice(-10).reverse();
+   if(!arr.length && !out.innerHTML) out.innerHTML='<div class="ck-card"><strong>Últimas entregas</strong><p style="color:#aaa">Nenhum kit entregue ainda nesta homologação.</p></div>';
+ }
+})();
+</script>
+
+
+<!-- V7: Número de peito + QR Code -->
+<style>
+#bibModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:10000}
+#bibModal .bib-box{width:min(980px,95vw);max-height:92vh;overflow:auto;background:#17131d;color:#fff;border:1px solid #6d4aff;border-radius:18px;padding:22px}
+.bib-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.bib-head h2{margin:0}
+.bib-close{background:#30283d;color:#fff;border:0;border-radius:9px;padding:8px 12px}
+.bib-search{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}.bib-search input{flex:1;min-width:220px;padding:12px;border-radius:9px;border:1px solid #51465e;background:#0f0c13;color:#fff}
+.bib-btn{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}.bib-primary{background:#9cff00;color:#111}.bib-secondary{background:#6d4aff;color:#fff}.bib-muted{background:#30283d;color:#fff}
+.bib-card{background:#211b28;border-radius:14px;padding:17px;margin-top:12px}.bib-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.bib-item small{display:block;color:#aaa}.bib-item strong{display:block;margin-top:3px}
+.bib-ok{background:#18351d;padding:11px;border-radius:9px;margin:10px 0}.bib-warn{background:#3b2919;padding:11px;border-radius:9px;margin:10px 0}
+.bib-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.bib-number{font-size:58px;font-weight:900;letter-spacing:4px;text-align:center;padding:15px;border:2px dashed #9cff00;border-radius:14px;margin-top:12px}
+.bib-qr{display:flex;justify-content:center;margin:18px 0}.bib-qr img{width:220px;height:220px;background:#fff;padding:10px;border-radius:10px}
+</style>
+
+<div id="bibModal">
+ <div class="bib-box">
+  <div class="bib-head">
+   <h2>Número de Peito + QR Code</h2>
+   <button class="bib-close" onclick="fecharNumeracao()">Fechar</button>
+  </div>
+  <div class="bib-search">
+   <input id="bibCpf" placeholder="Buscar atleta pelo CPF" inputmode="numeric">
+   <button class="bib-btn bib-primary" onclick="buscarNumeracao()">Buscar</button>
+  </div>
+  <div id="bibResult"></div>
+ </div>
+</div>
+
+<script>
+(function(){
+ const REGKEY='cnr26_registrations';
+ const BIBKEY='cnr26_bibs';
+ const normalize=v=>String(v||'').replace(/\D/g,'');
+ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+ const get=(o,ks)=>{for(const k of ks)if(o&&o[k]!=null&&o[k]!=='')return o[k];return ''};
+ const regs=()=>{try{return JSON.parse(localStorage.getItem(REGKEY)||'[]')}catch(e){return[]}};
+ const bibs=()=>{try{return JSON.parse(localStorage.getItem(BIBKEY)||'[]')}catch(e){return[]}};
+ const save=v=>localStorage.setItem(BIBKEY,JSON.stringify(v));
+ const confirmed=r=>['INSCRIÇÃO CONFIRMADA','INSCRICAO CONFIRMADA','PAGAMENTO CONFIRMADO','CONFIRMADA','CONFIRMADO'].includes(String(get(r,['status','situacao'])).toUpperCase());
+
+ window.abrirNumeracao=function(){
+   document.getElementById('bibModal').style.display='flex';
+   document.getElementById('bibCpf').focus();
+ };
+ window.fecharNumeracao=function(){document.getElementById('bibModal').style.display='none'};
+ window.buscarNumeracao=function(){
+   const cpf=normalize(document.getElementById('bibCpf').value), out=document.getElementById('bibResult');
+   const r=regs().find(x=>normalize(get(x,['cpf','CPF']))===cpf);
+   if(!r){out.innerHTML='<div class="bib-warn">Atleta não encontrado.</div>';return;}
+   render(r);
+ };
+ function render(r){
+   const cpf=normalize(get(r,['cpf','CPF']));
+   const b=bibs().find(x=>normalize(x.cpf)===cpf);
+   let h='<div class="bib-card"><div class="bib-grid">';
+   h+='<div class="bib-item"><small>Atleta</small><strong>'+esc(get(r,['name','nome']))+'</strong></div>';
+   h+='<div class="bib-item"><small>CPF</small><strong>'+esc(get(r,['cpf','CPF']))+'</strong></div>';
+   h+='<div class="bib-item"><small>Modalidade</small><strong>'+esc(get(r,['modality','modalidade']))+'</strong></div>';
+   h+='<div class="bib-item"><small>Camisa</small><strong>'+esc(get(r,['shirt','camisa','shirtSize','tamanho']))+'</strong></div>';
+   h+='</div>';
+   if(!confirmed(r)){
+     h+='<div class="bib-warn">NUMERAÇÃO BLOQUEADA: a inscrição ainda não está confirmada.</div></div>';
+     document.getElementById('bibResult').innerHTML=h;return;
+   }
+   if(b){
+     h+='<div class="bib-ok">Número já atribuído. A numeração não será alterada.</div>';
+     h+='<div class="bib-number">'+esc(b.number)+'</div>';
+     h+='<div class="bib-qr"><img alt="QR Code do atleta" src="'+qrUrl(b.payload)+'"></div>';
+     h+='<div class="bib-item"><small>Identificador QR</small><strong>'+esc(b.payload)+'</strong></div>';
+     h+='<div class="bib-actions"><button class="bib-btn bib-secondary" onclick="window.open('+JSON.stringify(qrUrl(b.payload))+',\\'_blank\\')">Abrir QR</button></div>';
+   }else{
+     h+='<div class="bib-warn">Este atleta ainda não possui número de peito.</div>';
+     h+='<div class="bib-actions"><button class="bib-btn bib-primary" onclick="gerarNumeracao('+JSON.stringify(cpf)+')">Gerar número de peito</button></div>';
+   }
+   h+='</div>';
+   document.getElementById('bibResult').innerHTML=h;
+ }
+ function nextNumber(){
+   const arr=bibs().map(x=>Number(x.number)).filter(n=>Number.isFinite(n));
+   let n=1;
+   while(arr.includes(n))n++;
+   return String(n).padStart(4,'0');
+ }
+ function qrUrl(payload){
+   return 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='+encodeURIComponent(payload);
+ }
+ window.gerarNumeracao=function(cpf){
+   const r=regs().find(x=>normalize(get(x,['cpf','CPF']))===cpf);
+   if(!r)return;
+   if(!confirmed(r)){alert('Inscrição não confirmada.');return;}
+   const arr=bibs();
+   if(arr.some(x=>normalize(x.cpf)===cpf)){buscarNumeracao();return;}
+   const number=nextNumber();
+   const payload='CNR26|CPF|'+cpf+'|NPEITO|'+number;
+   arr.push({cpf,number,payload,assignedAt:new Date().toISOString(),assignedBy:'ATENDENTE'});
+   save(arr);
+   alert('Número de peito '+number+' atribuído com sucesso.');
+   buscarNumeracao();
+ };
+})();
+</script>
+
+
+<script>
+window.CNR26_V8={
+ modalities:{
+  "CORRIDA 7KM":{total:1000,values:{"INDIVIDUAL":110,"SOCIO":100,"BONIFICACAO":0,"PCD":0}},
+  "CORRIDINHA INFANTIL":{total:100,values:{"INDIVIDUAL":60,"BONIFICACAO":0,"PCD":0}}
+ },
+ normalizeCPF:v=>String(v||"").replace(/\D/g,""),
+ confirmedStatuses:["INSCRIÇÃO CONFIRMADA","INSCRICAO CONFIRMADA","PAGAMENTO CONFIRMADO","CONFIRMADA","CONFIRMADO"],
+ isConfirmed:s=>["INSCRIÇÃO CONFIRMADA","INSCRICAO CONFIRMADA","PAGAMENTO CONFIRMADO","CONFIRMADA","CONFIRMADO"].includes(String(s||"").toUpperCase()),
+ ageAtCutoff(dob){
+  if(!dob)return null; const d=new Date(dob+"T00:00:00"),c=new Date("2026-12-31T23:59:59");
+  let a=c.getFullYear()-d.getFullYear(),m=c.getMonth()-d.getMonth();
+  if(m<0||(m===0&&c.getDate()<d.getDate()))a--; return a;
+ },
+ validateAthlete(r){
+  const e=[],cpf=this.normalizeCPF(r.cpf);
+  if(cpf.length!==11)e.push("CPF deve conter 11 dígitos.");
+  if(!r.name)e.push("Nome completo obrigatório.");
+  if(!r.dob)e.push("Data de nascimento obrigatória.");
+  if(String(r.modality||"").toUpperCase().includes("CORRIDINHA")){
+   const age=this.ageAtCutoff(r.dob);
+   if(age===null||age<4||age>12)e.push("Corridinha: idade de 4 a 12 anos em 31/12/2026.");
+   if(!r.responsibleName||!r.responsibleCPF||!r.responsibleWhatsApp)e.push("Corridinha: responsável, CPF e WhatsApp obrigatórios.");
+  }
+  return e;
+ }
+};
+</script>
+<div style="position:fixed;bottom:12px;right:12px;z-index:9998;background:#211b28;color:#fff;border:1px solid #6d4aff;border-radius:10px;padding:7px 10px;font-size:11px">CNR 2026 • V9.0 — EMPRESA/ESTOQUE</div>
+<script>
+/* V8.3 — ponte de homologação entre área pública e atendente.
+   Em produção, ambos usarão a mesma API/banco; não haverá sincronização por localStorage. */
+(function(){
+  const PUBLIC_KEY="cnr26_homologacao";
+  const ATT_KEY="cnr26_homologacao";
+  function read(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+  function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+  function cpf(v){return String(v||"").replace(/\D/g,"")}
+  function sync(){
+    const pub=read(PUBLIC_KEY), att=read(ATT_KEY);
+    if(!pub && !att)return;
+    if(pub && pub.cpf){
+      const merged=Object.assign({},pub,att||{});
+      merged.cpf=pub.cpf;
+      // The public area remains the source for athlete-facing identity data.
+      if(pub.name) merged.name=pub.name;
+      if(pub.modality) merged.modality=pub.modality;
+      if(pub.shirt) merged.shirt=pub.shirt;
+      write(ATT_KEY,merged);
+    }
+    const latest=read(ATT_KEY);
+    if(latest && latest.cpf){
+      const current=read(PUBLIC_KEY)||{};
+      // Push only workflow state and payment/proof metadata back to the public view.
+      const out=Object.assign({},current,{
+        cpf:latest.cpf,
+        name:latest.name||current.name,
+        modality:latest.modality||current.modality,
+        shirt:latest.shirt||current.shirt,
+        value:latest.value||current.value,
+        status:latest.status||current.status,
+        proofName:latest.proofName||current.proofName,
+        proofSentAt:latest.proofSentAt||current.proofSentAt
+      });
+      write(PUBLIC_KEY,out);
+    }
+  }
+  sync();
+  window.CNR26_SYNC_PUBLIC=sync;
+})();
+</script>
+
+<script>
+(function(){
+  function hookApproval(){
+    if(typeof window.CNR26_SYNC_PUBLIC!=="function") return;
+    window.CNR26_SYNC_PUBLIC();
+  }
+  // Existing prototype buttons invoke functions; wrap common approval names if present.
+  ["aprovar","approve","aprovarPagamento","confirmarInscricao","confirmarPagamento"].forEach(function(n){
+    if(typeof window[n]==="function" && !window[n].__cnr83){
+      const old=window[n];
+      const wrapped=function(){const r=old.apply(this,arguments);hookApproval();return r};
+      wrapped.__cnr83=true; window[n]=wrapped;
+    }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  window.ajustarTamanhosCorridinha = function(){
+    var modalidade=document.getElementById("pMod");
+    var camisa=document.getElementById("pCamisa");
+    if(!modalidade || !camisa) return;
+    var infantil=(modalidade.value === "infantil");
+    var atual=camisa.value;
+    var opcoes=infantil ? [
+      ["4 anos","4 anos"],["6 anos","6 anos"],["8 anos","8 anos"],
+      ["10 anos","10 anos"],["12 anos","12 anos"],["PP","PP"],["P","P"]
+    ] : [
+      ["PP","PP"],["P","P"],["M","M"],["G","G"],["GG","GG"],["XG","XG"]
+    ];
+    camisa.innerHTML='<option value="">Selecione</option>';
+    opcoes.forEach(function(item){
+      var o=document.createElement("option"); o.value=item[0]; o.textContent=item[1]; camisa.appendChild(o);
+    });
+    if(opcoes.some(function(item){return item[0]===atual;})) camisa.value=atual;
+  };
+  document.addEventListener("DOMContentLoaded", function(){ window.ajustarTamanhosCorridinha(); });
+})();
+</script>
+
+
+<script>
+(function(){
+const KEY='cnr26_bonificacoes_v95', REGKEY='cnr26_registrations';
+const get=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}};
+const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+function shirts(){
+ const m=document.getElementById('b95_mod'),c=document.getElementById('b95_camisa'); if(!m||!c)return;
+ const a=m.value==='infantil'?[['4','4 anos'],['6','6 anos'],['8','8 anos'],['10','10 anos'],['12','12 anos'],['PP','PP'],['P','P']]:[['PP','PP'],['P','P'],['M','M'],['G','G'],['GG','GG'],['XG','XG']];
+ c.innerHTML=a.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('');
+}
+function sameMod(x,m){
+ const v=String(x.modality||x.modalidade||'').toLowerCase(), inf=v.includes('infantil')||v.includes('corridinha');
+ return m==='infantil'?inf:!inf;
+}
+function available(m){
+ const regs=get(REGKEY).filter(r=>sameMod(r,m)&&String(r.origin||r.origem||'').toLowerCase()!=='empresa'&&String(r.status||'').toLowerCase().includes('confirm')).length;
+ const lots=get('cnr26_empresas_lotes_v2').filter(l=>sameMod(l,m)&&String(l.status||'ATIVO').toUpperCase()!=='CANCELADO').reduce((a,l)=>a+Number(l.contracted??l.contratadas??l.spots??l.vagas??0),0);
+ return Math.max(0,(m==='infantil'?100:1000)-regs-lots);
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ shirts();
+ document.getElementById('b95_mod')?.addEventListener('change',shirts);
+ document.getElementById('b95_salvar')?.addEventListener('click',()=>{
+  const cpf=document.getElementById('b95_cpf').value.replace(/\D/g,''),nome=document.getElementById('b95_nome').value.trim(),mod=document.getElementById('b95_mod').value,camisa=document.getElementById('b95_camisa').value,motivo=document.getElementById('b95_motivo').value.trim(),aut=document.getElementById('b95_autorizador').value.trim(),msg=document.getElementById('b95_msg');
+  if(!cpf||cpf.length!==11||!nome||!motivo||!aut){msg.textContent='Preencha CPF, nome, motivo e quem autorizou.';return;}
+  const regs=get(REGKEY);
+  if(regs.some(r=>String(r.cpf||'').replace(/\D/g,'')===cpf&&String(r.status||'').toLowerCase()!=='cancelada')){msg.textContent='Já existe uma inscrição para este CPF.';return;}
+  if(available(mod)<=0){msg.textContent='Não há vaga disponível para esta modalidade. Bonificação bloqueada.';return;}
+  const now=new Date().toISOString();
+  const rec={id:'BON-'+Date.now(),cpf,nome,mod,camisa,motivo,autorizador:aut,valor:0,status:'INSCRIÇÃO CONFIRMADA',origin:'BONIFICACAO',payment_status:'ISENTO — BONIFICAÇÃO',created_at:now,registradoPor:'ATENDENTE'};
+  const bonuses=get(KEY); bonuses.push(rec); put(KEY,bonuses);
+  regs.push({cpf,nome,modality:mod==='infantil'?'Corridinha Infantil':'Corrida 7 km',modalidade:mod==='infantil'?'Corridinha Infantil':'Corrida 7 km',camisa,origin:'BONIFICACAO',origem:'Bonificação',status:'INSCRIÇÃO CONFIRMADA',valor:0,paymentStatus:'ISENTO — BONIFICAÇÃO',motivoBonificacao:motivo,autorizadoPor:aut,registradoPor:'ATENDENTE',createdAt:now});
+  put(REGKEY,regs);
+  msg.textContent='INSCRIÇÃO BONIFICADA REALIZADA COM SUCESSO — 1 vaga consumida.';
+ });
+});
+})();
+</script>
+
+<script>
+(function(){
+  function pcdFields(){
+    const m=document.getElementById("pMod"), w=document.getElementById("pcdDocWrap");
+    if(w) w.style.display=(m&&m.value==="pcd")?"block":"none";
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    pcdFields();
+    document.getElementById("pMod")?.addEventListener("change",pcdFields);
+  });
+})();
+</script>
+</body>
+</html>
